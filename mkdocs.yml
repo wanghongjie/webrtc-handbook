@@ -1,0 +1,72 @@
+site_name: WebRTC 伴随手册
+site_description: 在 Rephone Security 项目（相机端 App + flutter-webrtc-server 信令服务）中边做边写的 WebRTC 学习笔记与踩坑记录
+site_author: wanghongjie
+copyright: Copyright &copy; 2026 WebRTC 伴随手册
+
+theme:
+  name: material
+  language: zh
+  font: false # 不拉取 Google Fonts，国内访问更快，中文用系统字体
+  features:
+    - navigation.instant
+    - navigation.top
+    - navigation.tracking
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: 切换到深色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到浅色模式
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js
+
+nav:
+  - 首页: index.md
+  - "01 · WebRTC 基础概念": "01-WebRTC-基础概念.md"
+  - "02 · 术语速查表": "02-WebRTC-术语速查表.md"
+  - "03 · 音视频与媒体基础": "03-音视频与媒体基础.md"
+  - "04 · 信令与连接建立": "04-信令与连接建立.md"
+  - "05 · 状态机与生命周期": "05-状态机与生命周期.md"
+  - "06 · 项目代码地图": "06-项目代码地图.md"
+  - "07 · 问题与坑位记录": "07-问题与坑位记录.md"
