@@ -1,6 +1,7 @@
 site_name: WebRTC 伴随手册
 site_description: 在 Rephone Security 项目（相机端 App + flutter-webrtc-server 信令服务）中边做边写的 WebRTC 学习笔记与踩坑记录
 site_author: wanghongjie
+site_url: https://wanghongjie.github.io/webrtc-handbook/
 copyright: Copyright &copy; 2026 WebRTC 伴随手册
 
 theme:
