@@ -28,7 +28,7 @@
 | **ICE** | 找通路的"决策算法"：收集候选→两两连通性测试→选最优 | RFC 8445 | `pc.onIceCandidate` |
 | **ICE Candidate** | 一条可能通路的地址（host/srflx/relay 三种） | 通过信令互发 | `_send('candidate', ...)` |
 | **STUN** | 查自己公网映射地址的服务器（不转发媒体） | 解决"我在 NAT 后面"问题的一半 | `stun:stun.l.google.com` |
-| **TURN** | 打洞失败时转发媒体的中继服务器 | 需要用户凭据；媒体会过它，带宽成本高 | `/api/turn` 动态签发 |
+| **TURN** | 打洞失败时转发媒体的中继服务器 | 需要用户凭据；媒体会过它，带宽成本高；详见 `04` 章 4.0.3 | `/api/turn` 动态签发 |
 | **trickle ICE** | 候选边发现边发，不用等收集完 | 显著加快建连 | onIceCandidate 里逐条发送 |
 | **DTLS** | 数据报传输层安全：PC 上做密钥协商/加密握手 | DataChannel 也走它加密 | PC 内部自动 |
 | **SRTP** | 安全实时传输协议：媒体流的加密传输层 | DTLS 握手后派生密钥给它 | PC 内部自动 |
@@ -62,6 +62,7 @@
 | **NAT** | 路由器把内网 IP 映射到公网的行为 | 是 P2P 的头号障碍 | — |
 | **WebSocket** | 全双工长连接，用于本项目信令传输 | 与 WebRTC 是两回事，别混 | `websocket.dart` |
 | **HTTPS/TLS** | 加密的 HTTP / 通用加密传输层 | 本项目采集和 WS 均需 TLS（含自签放行） | `badCertificateCallback=true` |
+| **HTTPS vs WSS** | 都跑在 TLS 上；HTTPS=HTTP over TLS（请求-响应），WSS=WebSocket over TLS（全双工长连接） | `s` 才是 TLS，前面的 `http`/`ws` 是说话方式；详见 `04` 章 4.0 | `/api/turn` 用 HTTPS、`/ws` 用 WSS |
 | **SFU / MCU** | 多方场景的媒体服务器（选择性转发/混合） | 本项目 1v1 P2P 用不到 | — |
 | **Mesh（全网状）** | N 方两两互联的拓扑，N 小可用 | 本项目 1v1 即最简单 Mesh | — |
 
