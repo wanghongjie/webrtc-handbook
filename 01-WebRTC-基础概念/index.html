@@ -1,0 +1,1219 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="在 Rephone Security 项目（相机端 App + flutter-webrtc-server 信令服务）中边做边写的 WebRTC 学习笔记与踩坑记录">
+      
+      
+        <meta name="author" content="wanghongjie">
+      
+      
+        <link rel="canonical" href="https://wanghongjie.github.io/webrtc-handbook/01-WebRTC-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../02-WebRTC-%E6%9C%AF%E8%AF%AD%E9%80%9F%E6%9F%A5%E8%A1%A8/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>01 · WebRTC 基础概念 - WebRTC 伴随手册</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#01-webrtc" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="WebRTC 伴随手册" class="md-header__button md-logo" aria-label="WebRTC 伴随手册" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            WebRTC 伴随手册
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              01 · WebRTC 基础概念
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="WebRTC 伴随手册" class="md-nav__button md-logo" aria-label="WebRTC 伴随手册" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    WebRTC 伴随手册
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 · WebRTC 基础概念
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 · WebRTC 基础概念
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 一句话理解
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-webrtc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 为什么要用 WebRTC（适用场景）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-webrtc-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 WebRTC 的四大件（核心 API）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.3 WebRTC 的四大件（核心 API）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-getusermedia" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ① 采集 getUserMedia
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-rtcdatachannel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ③ 数据通道 RTCDataChannel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-offerer-answerer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.5 角色：主叫 Offerer 与被叫 Answerer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-nat-stun-turn-ice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.6 网络穿越：为什么不能直接连？（NAT / STUN / TURN / ICE）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.6 网络穿越：为什么不能直接连？（NAT / STUN / TURN / ICE）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        背景问题：NAT
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        三个工具
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ice-candidate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ICE Candidate（候选）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.7 新手必避的三个"概念坑"
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.8 一张"心智地图"复习本章
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.9 下一步
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-WebRTC-%E6%9C%AF%E8%AF%AD%E9%80%9F%E6%9F%A5%E8%A1%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02 · 术语速查表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-%E9%9F%B3%E8%A7%86%E9%A2%91%E4%B8%8E%E5%AA%92%E4%BD%93%E5%9F%BA%E7%A1%80/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03 · 音视频与媒体基础
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-%E4%BF%A1%E4%BB%A4%E4%B8%8E%E8%BF%9E%E6%8E%A5%E5%BB%BA%E7%AB%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04 · 信令与连接建立
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-%E7%8A%B6%E6%80%81%E6%9C%BA%E4%B8%8E%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05 · 状态机与生命周期
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E5%9C%B0%E5%9B%BE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    06 · 项目代码地图
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-%E9%97%AE%E9%A2%98%E4%B8%8E%E5%9D%91%E4%BD%8D%E8%AE%B0%E5%BD%95/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07 · 问题与坑位记录
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 一句话理解
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-webrtc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 为什么要用 WebRTC（适用场景）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-webrtc-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 WebRTC 的四大件（核心 API）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.3 WebRTC 的四大件（核心 API）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-getusermedia" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ① 采集 getUserMedia
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-rtcdatachannel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ③ 数据通道 RTCDataChannel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-offerer-answerer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.5 角色：主叫 Offerer 与被叫 Answerer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-nat-stun-turn-ice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.6 网络穿越：为什么不能直接连？（NAT / STUN / TURN / ICE）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.6 网络穿越：为什么不能直接连？（NAT / STUN / TURN / ICE）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        背景问题：NAT
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        三个工具
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ice-candidate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ICE Candidate（候选）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.7 新手必避的三个"概念坑"
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.8 一张"心智地图"复习本章
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.9 下一步
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="01-webrtc">01 WebRTC 基础概念<a class="headerlink" href="#01-webrtc" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>状态：🟢 已填充 ｜ 读者：WebRTC 小白 ｜ 难度：★☆☆☆☆
+目的：建立一张"全局地图"，知道 WebRTC 是什么、能干什么、由哪些部件组成、一次连接要走完哪几步。</p>
+</blockquote>
+<hr />
+<h2 id="11">1.1 一句话理解<a class="headerlink" href="#11" title="Permanent link">&para;</a></h2>
+<p><strong>WebRTC（Web Real-Time Communication，网页实时通信）是一套让两个终端「不经过服务器转码、直接点对点」传输音视频和任意数据的开放技术。</strong></p>
+<p>关键在三个字：<strong>点对点（P2P）</strong>。视频字节流不经过业务服务器，而是从一端直接流向另一端。</p>
+<blockquote>
+<p>生活比喻：打电话时，<strong>电话号码簿/接线员</strong>帮你找到对方并接通（= 信令服务器），但接通后<strong>你们两人直接说话</strong>（= P2P 媒体），接线员不再插嘴。</p>
+</blockquote>
+<p>所以从第一天就要记住一个"反常识"：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>WebRTC ≠ 服务器帮你转发视频
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>WebRTC = 服务器帮你"找到对方 + 交换钥匙"，视频由双方直连
+</code></pre></div>
+<p><strong>对应本项目</strong>：Rephone Security 的信令服务器（<code>flutter-webrtc-server</code>）只做"找人与传小纸条"（<code>offer/answer/candidate</code>），相机端和监控端之间的画面是 P2P 直连的；只有当两边网络都打洞失败时，才退而求其次经过 TURN 服务器中转。</p>
+<h2 id="12-webrtc">1.2 为什么要用 WebRTC（适用场景）<a class="headerlink" href="#12-webrtc" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>说明</th>
+<th>本项目例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>实时音视频通话</td>
+<td>低延迟(&lt;几百 ms)，无需服务器转码成本</td>
+<td>相机端 ↔ 监控端 实时画面 + 对讲</td>
+</tr>
+<tr>
+<td>1 对 1 / 1 对 N 低规模直播</td>
+<td>规模小可直接 Mesh（每端两两互联）</td>
+<td>一个相机同时被一个监控端看</td>
+</tr>
+<tr>
+<td>实时数据通道</td>
+<td>延迟敏感的小数据 / 大文件分块直传</td>
+<td>事件列表 JSON、录像二进制回传（DataChannel）</td>
+</tr>
+<tr>
+<td>云监控/远程查看</td>
+<td>相机常驻采集，用户随时拉流</td>
+<td>Rephone Security 的核心场景</td>
+</tr>
+</tbody>
+</table>
+<p><strong>相对传统方案的优点</strong>：不占用服务器带宽（P2P）、延迟低、端上加密（DTLS-SRTP）、免费（不依赖第三方 CDN/流媒体服务器）。</p>
+<p><strong>代价/边界</strong>（也要知道，才不会想当然）：
+1. 必须<strong>先通过某种信令</strong>让双方互相认识（WebRTC 自己不管这件事）。
+2. 端上编码解码，<strong>对设备性能有要求</strong>。
+3. 大规模（几百上千同时看）不适合纯 P2P，需要 SFU/MCU 媒体服务器。
+4. 端与端之间的网络可能不通（详见 1.6 的 NAT/TURN）。</p>
+<h2 id="13-webrtc-api">1.3 WebRTC 的四大件（核心 API）<a class="headerlink" href="#13-webrtc-api" title="Permanent link">&para;</a></h2>
+<p>对新手，整个 WebRTC 可以拆成 4 个"积木"：</p>
+<table>
+<thead>
+<tr>
+<th>积木</th>
+<th>干什么</th>
+<th>浏览器 API</th>
+<th>flutter_webrtc 中的名字</th>
+<th>本项目所在代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① 采集</td>
+<td>拿摄像头/麦克风/屏幕</td>
+<td><code>getUserMedia</code> / <code>getDisplayMedia</code></td>
+<td><code>navigator.mediaDevices.getUserMedia()</code></td>
+<td><code>signaling.dart</code> 的 <code>createStream()</code>、<code>setMonitorTalkbackEnabled()</code>（对讲麦克风）</td>
+</tr>
+<tr>
+<td>② 传输</td>
+<td>点对点收发音视频（黑盒，最重要）</td>
+<td><code>RTCPeerConnection</code></td>
+<td><code>createPeerConnection()</code></td>
+<td><code>signaling.dart</code> 的 <code>_createSession()</code></td>
+</tr>
+<tr>
+<td>③ 数据</td>
+<td>点对点传输任意数据（文本/二进制）</td>
+<td><code>RTCDataChannel</code></td>
+<td><code>pc.createDataChannel()</code></td>
+<td><code>signaling.dart</code> 的 <code>_createDataChannel()</code>（label=<code>fileTransfer</code>）</td>
+</tr>
+<tr>
+<td>④ 事件</td>
+<td>上面三者的各种状态回调</td>
+<td><code>onicecandidate/ontrack/...</code></td>
+<td><code>pc.onIceCandidate</code>、<code>pc.onTrack</code></td>
+<td><code>signaling.dart</code> 全程使用</td>
+</tr>
+</tbody>
+</table>
+<p><strong>记忆口诀</strong>：<strong>采（采集）—传（传输）—数（数据）—感（感知回调）</strong>。</p>
+<h3 id="1-getusermedia">① 采集 getUserMedia<a class="headerlink" href="#1-getusermedia" title="Permanent link">&para;</a></h3>
+<p>把摄像头/麦克风变成一条条 <strong>Track（轨道）</strong>，装进一个 <strong>Stream（流）</strong>。</p>
+<p>```12:28:rephone-security/lib/services/signaling.dart
+// 本项目：相机端拉起 640x480、30fps、指定前后摄
+final mediaConstraints = {
+  'audio': true,
+  'video': {
+    'mandatory': {'minWidth': '640', 'minHeight': '480', 'minFrameRate': '30'},
+    'facingMode': _currentFacingMode, // 'user'(前摄) / 'environment'(后摄)
+  },
+};
+stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>注意区分两个词（后面术语表也会列）：
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>- **Track** = 一条独立轨道（一路摄像头画面 / 一路麦克风声音）。
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>- **Stream** = Track 的容器，可含多路音频 + 多路视频。
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>### ② 传输 RTCPeerConnection（PC）
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>PC 是**最核心也最复杂的黑盒**。你只管"往里塞本地轨道、往外听远端轨道"，至于底层怎么做 NAT 穿越、怎么协商加密、怎么抗丢包——都是它内部完成。
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>```641:670:rephone-security/lib/services/signaling.dart
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>// 本项目：创建 PC（传入 ICE 服务器 + sdpSemantics）
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>RTCPeerConnection pc = await createPeerConnection({
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  ..._iceServers,
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>  ...{'sdpSemantics': 'unified-plan'}
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>}, _config);
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>// 本地轨道塞进 PC（相机端）
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>_localStream!.getTracks().forEach((track) async {
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>  _senders.add(await pc.addTrack(track, _localStream!));
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>});
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>// 远端来了轨道就回调（监控端收画面）
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>pc.onTrack = (event) { ... onAddRemoteStream / onAddRemoteAudioStream ... };
+</code></pre></div></p>
+<h3 id="3-rtcdatachannel">③ 数据通道 RTCDataChannel<a class="headerlink" href="#3-rtcdatachannel" title="Permanent link">&para;</a></h3>
+<p>在 PC 之上再开一条"快递通道"，可以传文本/二进制，延迟低。本项目用 <code>label='fileTransfer'</code> 的 DC 传输事件控制消息和录像文件。</p>
+<p>```765:773:rephone-security/lib/services/signaling.dart
+// 本项目：主叫方在 PC 上创建数据通道
+RTCDataChannel channel =
+    await session.pc!.createDataChannel('fileTransfer', dataChannelDict);
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>### ④ 回调（事件）
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>所有"发生了什么"都靠回调告诉你，例如：`onIceCandidate`（找到了候选地址）、`onTrack`（远端流到达）、`onIceConnectionState`（连接状态变化）、`onDataChannel`（对方请求开通道）。
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>## 1.4 一次连接的五大阶段（宏观模型）
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>这是整本手册的"主线剧情"，务必先记住框架，细节在后续章节展开：
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>```mermaid
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>flowchart LR
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    A[① 发现彼此&lt;br/&gt;信令 Signaling] --&gt; B[② 交换能力&lt;br/&gt;SDP offer/answer]
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    B --&gt; C[③ 找到通路&lt;br/&gt;ICE + STUN/TURN]
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    C --&gt; D[④ 建立安全&lt;br/&gt;DTLS + SRTP]
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    D --&gt; E[⑤ 传输媒体&lt;br/&gt;RTP / DataChannel]
+</code></pre></div></p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>一句话</th>
+<th>通俗解释</th>
+<th>关键技术</th>
+<th>本项目位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① 发现彼此</td>
+<td>双方通过"中间人"互相拿到 ID</td>
+<td>接线员把 A 的电话给 B</td>
+<td>WebSocket 信令</td>
+<td><code>websocket.dart</code> + <code>signaler.go</code></td>
+</tr>
+<tr>
+<td>② 交换能力</td>
+<td>告诉对方"我能收/发什么格式"</td>
+<td>互递"能力清单"</td>
+<td>SDP（offer/answer）</td>
+<td><code>signaling.dart</code> <code>_createOffer/_createAnswer</code></td>
+</tr>
+<tr>
+<td>③ 找到通路</td>
+<td>在各种网络路径里找出能用的那条</td>
+<td>在迷宫试路</td>
+<td>ICE/STUN/TURN</td>
+<td><code>turn.dart</code>、<code>pc.onIceCandidate</code></td>
+</tr>
+<tr>
+<td>④ 建立安全</td>
+<td>加密握手，保证只有彼此能听懂</td>
+<td>先对暗号再说话</td>
+<td>DTLS、SRTP 加密</td>
+<td>PC 内部自动完成</td>
+</tr>
+<tr>
+<td>⑤ 传输媒体</td>
+<td>音视频字节流与数据点对点流动</td>
+<td>正式通话</td>
+<td>RTP / DataChannel</td>
+<td><code>pc.onTrack</code>、DC 收发</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>关键认知：<strong>①② 必须借助服务器（信令），③④⑤ 都不需要服务器持续参与</strong>（④的握手细节需要 candidate 通路交换指纹，⑤ 完全 P2P）。
+这也是为什么文档名叫"信令连通逻辑"——服务器只负责 ①②，真正干活的是 ③④⑤。</p>
+</blockquote>
+<h2 id="15-offerer-answerer">1.5 角色：主叫 Offerer 与被叫 Answerer<a class="headerlink" href="#15-offerer-answerer" title="Permanent link">&para;</a></h2>
+<ul>
+<li>发起呼叫的一方叫 <strong>Offerer（主叫）</strong>，负责生成 <strong>offer</strong>（我第一次的能力清单）。</li>
+<li>接受呼叫的一方叫 <strong>Answerer（被叫）</strong>，回复 <strong>answer</strong>（我的能力清单）。</li>
+<li><strong>角色不对称</strong>：offer 必须携带媒体方向（我要发什么、想收什么），answer 只需回应。</li>
+</ul>
+<p><strong>对应本项目</strong>：
+- 监控端 = Offerer：<code>invite(cameraId, 'video')</code> → <code>createOffer()</code>。
+- 相机端 = Answerer：收到 offer → 校验后 <code>accept()</code> → <code>createAnswer()</code>。</p>
+<blockquote>
+<p>反直觉点：本项目里"相机"看似是视频的<strong>提供方</strong>，但呼叫关系上<strong>监控端是主叫</strong>。谁点"呼叫"谁是 Offerer，和"谁出画面"无关。</p>
+</blockquote>
+<h2 id="16-nat-stun-turn-ice">1.6 网络穿越：为什么不能直接连？（NAT / STUN / TURN / ICE）<a class="headerlink" href="#16-nat-stun-turn-ice" title="Permanent link">&para;</a></h2>
+<p>这是新手最容易懵、但又是 WebRTC 精髓的地方。</p>
+<h3 id="nat">背景问题：NAT<a class="headerlink" href="#nat" title="Permanent link">&para;</a></h3>
+<p>大部分设备在路由器（NAT）后面，只有一个<strong>内网 IP</strong>（如 <code>192.168.1.5</code>），外面根本找不到它。想 P2P，得先知道它在公网上的"临时地址"。</p>
+<h3 id="_1">三个工具<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>全称</th>
+<th>干什么</th>
+<th>生活比喻</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STUN</td>
+<td>Session Traversal Utilities for NAT</td>
+<td>帮你问"我的公网地址是什么"（只问不转）</td>
+<td>照镜子 / 问路人你地址牌上写啥</td>
+</tr>
+<tr>
+<td>TURN</td>
+<td>Traversal Using Relays around NAT</td>
+<td>打洞失败时，帮你<strong>中转</strong>媒体</td>
+<td>找不到路时走"代收代发"快递</td>
+</tr>
+<tr>
+<td>ICE</td>
+<td>Interactive Connectivity Establishment</td>
+<td><strong>决策者</strong>：收集所有候选，两两试通，挑最快能用的</td>
+<td>同时试多条路，哪条先通走哪条</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>一句话串联：<strong>ICE 先试直连 → 不行就试 STUN 打洞出的"公网映射地址" → 都不行就用 TURN 中转</strong>。</p>
+</blockquote>
+<h3 id="ice-candidate">ICE Candidate（候选）<a class="headerlink" href="#ice-candidate" title="Permanent link">&para;</a></h3>
+<p>每个"可能通路的地址"就是一个 candidate，例如：
+- <code>host</code>：本机内网地址 <code>192.168.1.5:54123</code>
+- <code>srflx</code>：STUN 反射出的公网地址 <code>1.2.3.4:51234</code>
+- <code>relay</code>：TURN 中转地址</p>
+<p>两端把各自的候选通过信令互发（这消息就叫 <code>candidate</code>），然后互相"试连"。<strong>候选是陆续产生的，边发现边发——这就是 trickle ICE</strong>。</p>
+<p><strong>对应本项目</strong>（配置在 <code>signaling.dart</code> 顶部 + <code>turn.dart</code>）：</p>
+<p>```117:129:rephone-security/lib/services/signaling.dart
+// 兜底方案：纯 STUN（连不上时也能打洞，但穿不过对称 NAT）
+Map<String, dynamic> _iceServers = {
+  'iceServers': [
+    {'url': 'stun:stun.l.google.com:19302'},
+  ]
+};
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>```499:517:rephone-security/lib/services/signaling.dart
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>// 连接前先向自家服务器要"24小时有效的 TURN 凭据"，成功后只用 TURN
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>_turnCredential = await getTurnCredential(_host, _port);
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>_iceServers = { 'iceServers': [ { 'urls': ...turn... } ] };
+</code></pre></div></p>
+<p>服务端 <code>HandleTurnServerCredentials</code>（<code>signaler.go</code>）用 HMAC-SHA1 签发短期凭据，并把它缓存进 <code>expresMap</code>，供之后 TURN 握手时校验（<code>authHandler</code>）。</p>
+<h2 id="17">1.7 新手必避的三个"概念坑"<a class="headerlink" href="#17" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>WebSocket ≠ WebRTC</strong>
+   WebSocket 是"服务器↔客户端"的长连接，用于传信令小纸条；WebRTC 是"端↔端"的媒体传输。本项目两条腿：WS 走信令（<code>/ws</code>），WebRTC 走媒体（UDP/RTP）。<strong>信令服务器倒了只是"找不到对方"，已建立的通话不会立刻断</strong>（但重协商/新呼叫会失败）。</li>
+<li><strong>信令服务器 ≠ 媒体服务器（SFU/MCU）</strong></li>
+<li>本项目服务端只是<strong>信令转发</strong>（relay 小纸条），视频不经过它 → 带宽成本 ≈ 0。</li>
+<li>若做多方会议/万人直播，才需要 SFU（选择性转发）或 MCU（混合）媒体服务器。Rephone Security 是 1 相机 ↔ 1 监控的 P2P（Mesh），不需要。</li>
+<li><strong>"连上了"不代表"有画面"</strong>
+   <code>CallStateConnected</code>（信令层面 SDP 交换完）≠ ICE 通路已通 ≠ 第一帧已出。监控端常见：状态 Connected 但黑屏 → 大概率卡在 ③ ICE 或 ⑤ 首帧/解码。排查顺序见 <code>07-问题与坑位记录.md</code>。</li>
+</ol>
+<h2 id="18">1.8 一张"心智地图"复习本章<a class="headerlink" href="#18" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TB
+    subgraph 我的设备
+        CAM[摄像头/麦克风] --&gt; UM[getUserMedia 采集]
+        UM --&gt; TRACK[Track/Stream]
+        TRACK --&gt; PC[RTCPeerConnection]
+        DC[RTCDataChannel] --- PC
+    end
+    PC --&gt; ICE[ICE: host/srflx/relay 候选]
+    ICE --&gt; STUN[STUN 打洞]
+    ICE --&gt; TURN[TURN 中转兜底]
+    PC -. offer/answer/candidate .-&gt; SIGNAL[信令服务器&lt;br/&gt;flutter-webrtc-server]
+    SIGNAL -. 转发 .-&gt; REMOTE[对方设备同样一套]
+    PC == 加密后 RTP 音视频 / DataChannel ==&gt; REMOTE</code></pre>
+<h2 id="19">1.9 下一步<a class="headerlink" href="#19" title="Permanent link">&para;</a></h2>
+<ul>
+<li>记不清名词 → 翻 <code>02-WebRTC-术语速查表.md</code></li>
+<li>想知道这套概念在本项目代码里长什么样 → 跳到 <code>06-项目代码地图.md</code></li>
+<li>想深入信令报文怎么传 → <code>04-信令与连接建立.md</code>（配套完整时序见 <code>docs/监控端WebRTC信令连通逻辑.md</code>）</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 WebRTC 伴随手册
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.top", "navigation.tracking", "content.code.copy", "content.code.annotate", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>
