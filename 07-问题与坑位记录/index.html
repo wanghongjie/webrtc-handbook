@@ -1,0 +1,996 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="在 Rephone Security 项目（相机端 App + flutter-webrtc-server 信令服务）中边做边写的 WebRTC 学习笔记与踩坑记录">
+      
+      
+        <meta name="author" content="wanghongjie">
+      
+      
+        <link rel="canonical" href="https://wanghongjie.github.io/webrtc-handbook/07-%E9%97%AE%E9%A2%98%E4%B8%8E%E5%9D%91%E4%BD%8D%E8%AE%B0%E5%BD%95/">
+      
+      
+        <link rel="prev" href="../06-%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E5%9C%B0%E5%9B%BE/">
+      
+      
+        <link rel="next" href="../08-%E5%AA%92%E4%BD%93%E6%B5%81%E4%B8%8E%E6%B8%B2%E6%9F%93%E9%93%BE%E8%B7%AF/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>07 · 问题与坑位记录 - WebRTC 伴随手册</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#07-webrtc" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="WebRTC 伴随手册" class="md-header__button md-logo" aria-label="WebRTC 伴随手册" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            WebRTC 伴随手册
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              07 · 问题与坑位记录
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="WebRTC 伴随手册" class="md-nav__button md-logo" aria-label="WebRTC 伴随手册" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    WebRTC 伴随手册
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-WebRTC-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 · WebRTC 基础概念
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-WebRTC-%E6%9C%AF%E8%AF%AD%E9%80%9F%E6%9F%A5%E8%A1%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02 · 术语速查表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-%E9%9F%B3%E8%A7%86%E9%A2%91%E4%B8%8E%E5%AA%92%E4%BD%93%E5%9F%BA%E7%A1%80/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03 · 音视频与媒体基础
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-%E4%BF%A1%E4%BB%A4%E4%B8%8E%E8%BF%9E%E6%8E%A5%E5%BB%BA%E7%AB%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04 · 信令与连接建立
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-%E7%8A%B6%E6%80%81%E6%9C%BA%E4%B8%8E%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05 · 状态机与生命周期
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E5%9C%B0%E5%9B%BE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    06 · 项目代码地图
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07 · 问题与坑位记录
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07 · 问题与坑位记录
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一、怎么写一条记录（模板）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        二、问题索引表（按编号，最新在上）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#p1-pcclosedispose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P1-PC只close不dispose导致内存泄漏
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#p2-captureframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P2-captureFrame取帧的三个坑（挂起/泄漏/固定文件名）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#p3-toimagemacosandroid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P3-toImage截外部纹理为什么macOS空白而Android正常
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        三、高频排查套路（草稿，随问题逐步打磨）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="三、高频排查套路（草稿，随问题逐步打磨）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 "监控端显示已连接但黑屏/没声音"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 "相机离线/找不到了"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 "信令连不上"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-%E5%AA%92%E4%BD%93%E6%B5%81%E4%B8%8E%E6%B8%B2%E6%9F%93%E9%93%BE%E8%B7%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    08 · 媒体流与渲染链路
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-%E9%87%87%E9%9B%86%E7%AB%AF%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F%E7%BA%A6%E5%AE%9A/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    09 · 采集端与数据格式约定
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一、怎么写一条记录（模板）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        二、问题索引表（按编号，最新在上）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#p1-pcclosedispose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P1-PC只close不dispose导致内存泄漏
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#p2-captureframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P2-captureFrame取帧的三个坑（挂起/泄漏/固定文件名）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#p3-toimagemacosandroid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        P3-toImage截外部纹理为什么macOS空白而Android正常
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        三、高频排查套路（草稿，随问题逐步打磨）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="三、高频排查套路（草稿，随问题逐步打磨）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 "监控端显示已连接但黑屏/没声音"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 "相机离线/找不到了"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 "信令连不上"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="07-webrtc">07 问题与坑位记录（WebRTC 踩坑仓库）<a class="headerlink" href="#07-webrtc" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>状态：🟡 骨架 + 3 条记录 ｜ 读者：正在调 WebRTC 的我自己
+规则：<strong>所有 Bug/疑问一律记到这里</strong>，先现象、后结论，最终沉淀成可复用的排障手册。
+每个问题贴好标签，方便以后按标签检索。</p>
+</blockquote>
+<hr />
+<h2 id="_1">一、怎么写一条记录（模板）<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gu">## P编号-日期-一句话标题</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">-</span><span class="w"> </span><span class="gs">**状态**</span>：待排查 | 已修复 | 已规避 | 复现中
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">-</span><span class="w"> </span><span class="gs">**标签**</span>：<span class="sb">`信令`</span> <span class="sb">`ICE`</span> <span class="sb">`数据通道`</span> <span class="sb">`内存`</span> <span class="sb">`UI`</span> <span class="sb">`服务端`</span> <span class="sb">`相机端`</span> <span class="sb">`监控端`</span> ...
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">-</span><span class="w"> </span><span class="gs">**现象**</span>：看到了什么（截图/日志片段）
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">-</span><span class="w"> </span><span class="gs">**影响**</span>：用户可感知的结果
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">-</span><span class="w"> </span><span class="gs">**排查过程**</span>：按时间线记录做了什么实验、看了什么日志
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">-</span><span class="w"> </span><span class="gs">**根因**</span>：一句话结论 + 涉及原理（跳转对应手册章节）
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="k">-</span><span class="w"> </span><span class="gs">**解决方案**</span>：改了哪个文件哪段逻辑
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">-</span><span class="w"> </span><span class="gs">**复盘**</span>：下次如何更快发现/避免；是否需要补进 01~06 章知识
+</code></pre></div>
+<blockquote>
+<p>约定：编号连续（P1, P2, …）；日期用 YYYY-MM-DD；现象日志尽量贴原始片段并标注端别。</p>
+</blockquote>
+<h2 id="_2">二、问题索引表（按编号，最新在上）<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>标题</th>
+<th>状态</th>
+<th>标签</th>
+<th>日期</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P3</td>
+<td><code>toImage</code> 截外部纹理：为什么 macOS 空白而 Android 正常</td>
+<td>已确认范围</td>
+<td><code>截图</code> <code>纹理</code> <code>渲染后端</code></td>
+<td>2026-09-23</td>
+</tr>
+<tr>
+<td>P2</td>
+<td><code>captureFrame()</code> 取帧的三个坑：挂起 / Bitmap 泄漏 / 固定文件名</td>
+<td>已规避</td>
+<td><code>截图</code> <code>原生插件</code> <code>挂起</code> <code>内存</code></td>
+<td>2026-09-23</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>PC 只 close 不 dispose 导致 native 资源泄漏 OOM</td>
+<td>已修复</td>
+<td><code>内存</code> <code>生命周期</code></td>
+<td>见下方示例</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="p1-pcclosedispose">P1-PC只close不dispose导致内存泄漏<a class="headerlink" href="#p1-pcclosedispose" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>状态</strong>：已修复（代码注释固化）</li>
+<li><strong>标签</strong>：<code>内存</code> <code>生命周期</code> <code>会话清理</code></li>
+<li><strong>现象</strong>：多次 相机端↔监控端 建立/断开 P2P 会话后，App 内存线性增长，最终 OOM 崩溃。</li>
+<li><strong>影响</strong>：监控 App 长时间多次查看相机后崩溃。</li>
+<li><strong>排查过程</strong>：定位到 <code>_cleanSessions()</code> / <code>_closeSession()</code> 只调用了 <code>pc.close()</code> 而没调用 <code>pc.dispose()</code>；flutter_webrtc 在 Web 之外是插件，native <code>PeerConnection</code>（网络线程/编解码器/纹理）在 close 后仍驻留。</li>
+<li><strong>根因</strong>：flutter_webrtc 中 <code>close()</code> 只关会话、<code>dispose()</code> 才释放 native 对象。旧代码每次会话只 close 不 dispose → native 对象泄漏累积。</li>
+<li><strong>解决方案</strong>：
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">await</span><span class="w"> </span><span class="n">sess</span><span class="p">.</span><span class="n">dc</span><span class="o">?</span><span class="p">.</span><span class="n">close</span><span class="p">();</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kd">await</span><span class="w"> </span><span class="n">sess</span><span class="p">.</span><span class="n">pc</span><span class="o">?</span><span class="p">.</span><span class="n">close</span><span class="p">();</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kd">await</span><span class="w"> </span><span class="n">sess</span><span class="p">.</span><span class="n">pc</span><span class="o">?</span><span class="p">.</span><span class="n">dispose</span><span class="p">();</span><span class="w">   </span><span class="c1">// 关键：释放 native PeerConnection</span>
+</code></pre></div>
+  见 <code>signaling.dart</code> <code>_closeSession()</code>/<code>_cleanSessions()</code>。</li>
+<li><strong>复盘</strong>：凡是"反复建立/断开长连接"的功能，都要检查<strong>每个 native/插件对象的成对释放</strong>；相关概念见 <code>05-状态机与生命周期.md</code>、<code>06-项目代码地图.md</code>。</li>
+</ul>
+<hr />
+<h2 id="p2-captureframe">P2-captureFrame取帧的三个坑（挂起/泄漏/固定文件名）<a class="headerlink" href="#p2-captureframe" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>状态</strong>：已规避（改用纹理快照，原理见 <a href="../08-%E5%AA%92%E4%BD%93%E6%B5%81%E4%B8%8E%E6%B8%B2%E6%9F%93%E9%93%BE%E8%B7%AF/">08 章 8.10</a>）</li>
+<li><strong>标签</strong>：<code>截图</code> <code>原生插件</code> <code>挂起</code> <code>内存</code> <code>Android</code></li>
+<li><strong>现象</strong>：监控端退出观看页时用 <code>track.captureFrame()</code> 存封面，偶发长时间不出图，靠 Dart 侧 <code>.timeout(1s)</code> 兜住才没卡死页面。</li>
+<li><strong>影响</strong>：退出页面偶发延迟；长时间频繁截图有内存增长风险。</li>
+<li><strong>排查过程</strong>：逐层读 <code>flutter_webrtc-1.6.0</code> 源码（Dart → MethodChannel → Android/iOS 原生），并检索上游 issue。</li>
+<li><strong>根因</strong>：同一个 API 上的三个独立问题：<ol>
+<li><strong>无超时的"等下一帧"</strong>：两端原生都是"挂一个临时接收器（<code>addSink</code> / <code>addRenderer</code>），等下一帧到来才回调"。轨道静止、对端停发或 <code>enabled = false</code> 时，这个 Future <strong>永不 resolve</strong>，而 Android / iOS <strong>两侧都没有超时</strong>（上游只在桌面端 C++ 路径补了 2s 超时）。</li>
+<li><strong>Android 旋转分支泄漏 Bitmap</strong>：<code>FrameCapturer.java:102-118</code> 中，<code>videoFrame.getRotation() != 0</code> 时创建的 <code>original</code> / <code>rotated</code> 两张全尺寸 Bitmap <strong>都没有 <code>recycle()</code></strong>。竖屏推流的远端帧 rotation 通常就是 90/270，<strong>正好命中</strong>；横屏固定机位（rotation = 0）反而安全。</li>
+<li><strong>固定文件名</strong>：Dart 侧 path 硬编码 <code>'${temp}/captureFrame.png'</code>（<code>media_stream_track_impl.dart:94</code>），全 App 共用一个临时文件——并发截图互相覆盖，且从不清理。</li>
+</ol>
+</li>
+<li><strong>解决方案</strong>：改用 <code>RepaintBoundary.toImage()</code> 纹理快照（<a href="../08-%E5%AA%92%E4%BD%93%E6%B5%81%E4%B8%8E%E6%B8%B2%E6%9F%93%E9%93%BE%E8%B7%AF/">08 章 8.10</a>），从根上不走这条链路。</li>
+<li><strong>复盘</strong>：凡是"挂上去等回调"的插件 API，先问一句——<strong>"如果回调永远不来，我的 Future 会不会永远挂着？"</strong>
+  上游对应 issue：<a href="https://github.com/flutter-webrtc/flutter-webrtc/issues/2176">#2176</a>/<a href="https://github.com/flutter-webrtc/flutter-webrtc/pull/2185">#2185</a>（桌面端忙等 + 2s 超时，<strong>仅桌面</strong>）、<a href="https://github.com/flutter-webrtc/flutter-webrtc/issues/415">#415</a>（Android 内存泄漏，被标 <code>wontfix</code> 长期未修）；移动端两侧至今无超时。</li>
+</ul>
+<hr />
+<h2 id="p3-toimagemacosandroid">P3-toImage截外部纹理为什么macOS空白而Android正常<a class="headerlink" href="#p3-toimagemacosandroid" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>状态</strong>：已确认范围（Android 实测正常，iOS 待实测）</li>
+<li><strong>标签</strong>：<code>截图</code> <code>纹理</code> <code>渲染后端</code> <code>macOS</code></li>
+<li><strong>现象</strong>：决定"用 <code>RepaintBoundary.toImage()</code> 截 <code>RTCVideoView</code> 当封面"是否可行时，需要先确认外部纹理在<strong>离屏光栅化</strong>下能不能拿到内容。Android 实测<strong>能正常出图</strong>。</li>
+<li><strong>影响</strong>：直接决定封面截图方案成立与否。</li>
+<li><strong>排查过程</strong>：读引擎源码 <code>flow/layers/texture_layer.cc</code>、<code>shell/platform/embedder/embedder_external_texture_gl.cc</code>，并对照 <a href="https://github.com/flutter/flutter/issues/191797">flutter/flutter#191797</a>。</li>
+<li><strong>根因</strong>：外部纹理解析是<strong>二选一</strong>——<code>aiks_context</code>（Impeller）或 <code>gr_context</code>（Skia）<strong>任一非空</strong>即可成功，两者都空则该层不产生任何绘制内容（全透明）。而 <code>LayerTree::Flatten</code>（离屏路径，<code>toImage</code> 走这条）<strong>不传 <code>aiks_context</code></strong>，于是成败取决于 <code>gr_context</code> 是否可用：<ul>
+<li><strong>macOS</strong>：Impeller 已是唯一后端，Skia 上下文为 <code>null</code> → 两条路都断 → 整块全透明；</li>
+<li><strong>Android</strong>：Skia 回退仍在 → 落到 <code>ResolveTextureSkia</code> → 正常。</li>
+</ul>
+</li>
+<li><strong>解决方案</strong>：Android 采用 <code>toImage</code> 方案；<strong>iOS 必须实测</strong>（与 macOS 同源 Metal，理论上可能命中），不能因为"代码共用"就假定可用。</li>
+<li><strong>复盘</strong>：跨平台结论<strong>不能用"共用代码"直接外推</strong>——共用的缺失（不传 <code>aiks_context</code>）只是必要条件，是否真的失败还取决于<strong>该平台有没有回退路径</strong>。
+  另需注意 <a href="https://github.com/flutter/flutter/issues/192365">#192365</a>：Android + Impeller-GLES 上 <code>toImage</code> 与 surface 销毁竞争会 use-after-free 崩溃（<strong>未修</strong>）——"能出图"不等于"不会崩"，两者是不同的问题。</li>
+</ul>
+<hr />
+<h2 id="_3">三、高频排查套路（草稿，随问题逐步打磨）<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h3 id="31">3.1 "监控端显示已连接但黑屏/没声音"<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<p>按层查：
+1. ICE 通了吗 → 打印/看 <code>pc.onIceConnectionState</code>（<code>connected</code> 才算通）。
+2. 远端有轨吗 → 相机端是否把本地轨 addTrack 进 PC（<code>_senders</code> 非空）；监控端 <code>onAddRemoteStream</code> 是否触发。
+3. 渲染对了吗 → <code>RTCVideoRenderer.srcObject</code> 是否绑定的是远端流而非本地流。
+4. 若两端不在同一网络/对称 NAT → 确认 TURN 生效（用 <code>iceServers</code> 里真实 uris 请求成功）。</p>
+<h3 id="32">3.2 "相机离线/找不到了"<a class="headerlink" href="#32" title="Permanent link">&para;</a></h3>
+<ul>
+<li>看服务端日志 <code>On Close</code> 与 <code>setCameraOnlineByDeviceID</code>；</li>
+<li>确认相机端 App 是否被系统杀死（前台服务保活策略）；</li>
+<li>确认相机端 WS 是否在自动重连（每 3s）。</li>
+</ul>
+<h3 id="33">3.3 "信令连不上"<a class="headerlink" href="#33" title="Permanent link">&para;</a></h3>
+<ul>
+<li>host/port 与证书是否匹配（自签证书放行逻辑在 <code>websocket.dart</code>）；</li>
+<li>服务端 <code>config.ini</code> 的 cert/key 是否正确、端口是否通；</li>
+<li>看 <code>/ws</code> 返回码：401 场景会触发 <code>NavigationService.handleUnauthorized()</code>。</li>
+</ul>
+<p>（更多套路随 P 编号问题持续沉淀）</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 WebRTC 伴随手册
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.top", "navigation.tracking", "content.code.copy", "content.code.annotate", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

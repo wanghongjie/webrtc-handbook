@@ -1,0 +1,1851 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="在 Rephone Security 项目（相机端 App + flutter-webrtc-server 信令服务）中边做边写的 WebRTC 学习笔记与踩坑记录">
+      
+      
+        <meta name="author" content="wanghongjie">
+      
+      
+        <link rel="canonical" href="https://wanghongjie.github.io/webrtc-handbook/09-%E9%87%87%E9%9B%86%E7%AB%AF%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F%E7%BA%A6%E5%AE%9A/">
+      
+      
+        <link rel="prev" href="../08-%E5%AA%92%E4%BD%93%E6%B5%81%E4%B8%8E%E6%B8%B2%E6%9F%93%E9%93%BE%E8%B7%AF/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>09 · 采集端与数据格式约定 - WebRTC 伴随手册</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#09" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="WebRTC 伴随手册" class="md-header__button md-logo" aria-label="WebRTC 伴随手册" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            WebRTC 伴随手册
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              09 · 采集端与数据格式约定
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="WebRTC 伴随手册" class="md-nav__button md-logo" aria-label="WebRTC 伴随手册" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    WebRTC 伴随手册
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-WebRTC-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 · WebRTC 基础概念
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-WebRTC-%E6%9C%AF%E8%AF%AD%E9%80%9F%E6%9F%A5%E8%A1%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02 · 术语速查表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-%E9%9F%B3%E8%A7%86%E9%A2%91%E4%B8%8E%E5%AA%92%E4%BD%93%E5%9F%BA%E7%A1%80/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03 · 音视频与媒体基础
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-%E4%BF%A1%E4%BB%A4%E4%B8%8E%E8%BF%9E%E6%8E%A5%E5%BB%BA%E7%AB%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04 · 信令与连接建立
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-%E7%8A%B6%E6%80%81%E6%9C%BA%E4%B8%8E%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05 · 状态机与生命周期
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E5%9C%B0%E5%9B%BE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    06 · 项目代码地图
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-%E9%97%AE%E9%A2%98%E4%B8%8E%E5%9D%91%E4%BD%8D%E8%AE%B0%E5%BD%95/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07 · 问题与坑位记录
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-%E5%AA%92%E4%BD%93%E6%B5%81%E4%B8%8E%E6%B8%B2%E6%9F%93%E9%93%BE%E8%B7%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    08 · 媒体流与渲染链路
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    09 · 采集端与数据格式约定
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    09 · 采集端与数据格式约定
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#90" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.0 全景：两条并行流水线
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#91-videoframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 视频采集：从相机到 VideoFrame
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9.1 视频采集：从相机到 VideoFrame">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#911-androidcamera2capturer-surfacetexturehelper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1.1 Android：Camera2Capturer + SurfaceTextureHelper
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#912-iosavcapture-videoprocessingadapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1.2 iOS：AVCapture + VideoProcessingAdapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#913" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1.3 请求尺寸 ≠ 实际尺寸
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#92-pcm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 音频采集：从麦克风到 PCM
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9.2 音频采集：从麦克风到 PCM">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#921-androidjavaaudiodevicemodule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2.1 Android：JavaAudioDeviceModule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#922-iosaudioengine-adm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2.2 iOS：AudioEngine 型 ADM
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#93-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 Frame 如何变成"可传输的数据"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9.3 Frame 如何变成&#34;可传输的数据&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#931" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3.1 编码
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#932-rtp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3.2 RTP 分包
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#933" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3.3 加密与发送
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#934" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3.4 运行中的自适应
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#94" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4 "数据流的格式"到底指什么（四层）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9.4 &#34;数据流的格式&#34;到底指什么（四层）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一帧视频的完整描述信息
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#95" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.5 采集端与渲染端的约定清单
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9.5 采集端与渲染端的约定清单">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#root-eglbase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        约定三（最硬、最易踩）：全局唯一 root EglBase
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        约定五：跨端协商的其实是这些
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#96" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.6 约定是"怎么确定"的
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#97-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.7 constraints 是期望，不是承诺
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#98" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.8 想自己处理帧：三条路线
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#99" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.9 坑位对照表
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#910" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.10 对应本项目
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#90" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.0 全景：两条并行流水线
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#91-videoframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 视频采集：从相机到 VideoFrame
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9.1 视频采集：从相机到 VideoFrame">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#911-androidcamera2capturer-surfacetexturehelper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1.1 Android：Camera2Capturer + SurfaceTextureHelper
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#912-iosavcapture-videoprocessingadapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1.2 iOS：AVCapture + VideoProcessingAdapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#913" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1.3 请求尺寸 ≠ 实际尺寸
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#92-pcm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 音频采集：从麦克风到 PCM
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9.2 音频采集：从麦克风到 PCM">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#921-androidjavaaudiodevicemodule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2.1 Android：JavaAudioDeviceModule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#922-iosaudioengine-adm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2.2 iOS：AudioEngine 型 ADM
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#93-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 Frame 如何变成"可传输的数据"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9.3 Frame 如何变成&#34;可传输的数据&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#931" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3.1 编码
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#932-rtp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3.2 RTP 分包
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#933" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3.3 加密与发送
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#934" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3.4 运行中的自适应
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#94" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4 "数据流的格式"到底指什么（四层）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9.4 &#34;数据流的格式&#34;到底指什么（四层）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一帧视频的完整描述信息
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#95" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.5 采集端与渲染端的约定清单
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9.5 采集端与渲染端的约定清单">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#root-eglbase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        约定三（最硬、最易踩）：全局唯一 root EglBase
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        约定五：跨端协商的其实是这些
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#96" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.6 约定是"怎么确定"的
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#97-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.7 constraints 是期望，不是承诺
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#98" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.8 想自己处理帧：三条路线
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#99" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.9 坑位对照表
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#910" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.10 对应本项目
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="09">09 采集端与数据格式约定<a class="headerlink" href="#09" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>状态：🟢 已填充 ｜ 读者：想知道"数据从哪来、是什么格式、两端凭什么配合"的人
+目的：把「相机/麦克风 → Frame → 可传输的数据」全链路讲透，并列出 <strong>采集端与渲染端之间到底有哪些约定、这些约定是怎么确定的</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="90">9.0 全景：两条并行流水线<a class="headerlink" href="#90" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TB
+    subgraph V["视频（帧驱动 / 走 GPU / 可丢帧）"]
+        V1["相机 HAL"] --&gt; V2["SurfaceTexture&lt;br/&gt;采集 GL 线程"] --&gt; V3["VideoFrame&lt;br/&gt;TextureBuffer，零拷贝"]
+        V3 --&gt; V4["VideoSource → VideoAdapter&lt;br/&gt;裁剪/缩放/旋转/降帧"]
+        V4 --&gt; V5["预览 Sink"] &amp; V6["编码器 Sink"]
+        V6 --&gt; V7["VideoStreamEncoder → H.264/VP8"] --&gt; V8["EncodedImage"]
+        V8 --&gt; V9["RtpPacketizer 拆包 ≤1200B"] --&gt; V10["SRTP → UDP"]
+    end
+    subgraph A["音频（恒定节拍 / 走 CPU / 不可丢帧）"]
+        A1["麦克风"] --&gt; A2["AudioRecord / AudioUnit"] --&gt; A3["PCM 16bit 48k，10ms/帧"]
+        A3 --&gt; A4["APM：AEC/NS/AGC/高通"] --&gt; A5["AudioSource"]
+        A5 --&gt; A6["Opus 编码 20ms=960 样本"] --&gt; A7["RTP（一帧一包）"] --&gt; A8["SRTP → UDP"]
+    end</code></pre>
+<p>差异一眼记住：<strong>视频"有帧就发、可丢可降、走 GPU"；音频"固定节拍、一帧不能丢、走 CPU"</strong>。</p>
+<hr />
+<h2 id="91-videoframe">9.1 视频采集：从相机到 VideoFrame<a class="headerlink" href="#91-videoframe" title="Permanent link">&para;</a></h2>
+<h3 id="911-androidcamera2capturer-surfacetexturehelper">9.1.1 Android：<code>Camera2Capturer</code> + <code>SurfaceTextureHelper</code><a class="headerlink" href="#911-androidcamera2capturer-surfacetexturehelper" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">// flutter_webrtc-1.6.0/android/.../GetUserMediaImpl.java:795-807</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">PeerConnectionFactory</span><span class="w"> </span><span class="n">pcFactory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stateProvider</span><span class="p">.</span><span class="na">getPeerConnectionFactory</span><span class="p">();</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">VideoSource</span><span class="w"> </span><span class="n">videoSource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pcFactory</span><span class="p">.</span><span class="na">createVideoSource</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">String</span><span class="w"> </span><span class="n">threadName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Thread</span><span class="p">.</span><span class="na">currentThread</span><span class="p">().</span><span class="na">getName</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">"_texture_camera_thread"</span><span class="p">;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">SurfaceTextureHelper</span><span class="w"> </span><span class="n">surfaceTextureHelper</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">        </span><span class="n">SurfaceTextureHelper</span><span class="p">.</span><span class="na">create</span><span class="p">(</span><span class="n">threadName</span><span class="p">,</span><span class="w"> </span><span class="n">EglUtils</span><span class="p">.</span><span class="na">getRootEglBaseContext</span><span class="p">());</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">surfaceTextureHelper</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">Log</span><span class="p">.</span><span class="na">e</span><span class="p">(</span><span class="n">TAG</span><span class="p">,</span><span class="w"> </span><span class="s">"surfaceTextureHelper is null"</span><span class="p">);</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">videoCapturer</span><span class="p">.</span><span class="na">initialize</span><span class="p">(</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">        </span><span class="n">surfaceTextureHelper</span><span class="p">,</span><span class="w"> </span><span class="n">applicationContext</span><span class="p">,</span><span class="w"> </span><span class="n">videoSource</span><span class="p">.</span><span class="na">getCapturerObserver</span><span class="p">());</span>
+</code></pre></div>
+<p>一次对齐三个角色：</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>是什么</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SurfaceTextureHelper</code></td>
+<td>采集专用 GL 线程 + 一块 <code>SurfaceTexture</code></td>
+<td>相机 HAL 把每帧<strong>直接写进纹理</strong>，不经过 CPU 内存</td>
+</tr>
+<tr>
+<td><code>EglUtils.getRootEglBaseContext()</code></td>
+<td>全局唯一的 root EGL 上下文</td>
+<td>与渲染端、编码器共享（见 9.6 约定三）</td>
+</tr>
+<tr>
+<td><code>videoSource.getCapturerObserver()</code></td>
+<td>采集端的<strong>交付出口</strong></td>
+<td>每帧回调进 native <code>VideoSource</code></td>
+</tr>
+</tbody>
+</table>
+<p>开始采集：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">// flutter_webrtc-1.6.0/android/.../GetUserMediaImpl.java:856-867</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">videoCapturer</span><span class="p">.</span><span class="na">startCapture</span><span class="p">(</span><span class="n">targetWidth</span><span class="p">,</span><span class="w"> </span><span class="n">targetHeight</span><span class="p">,</span><span class="w"> </span><span class="n">targetFps</span><span class="p">);</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">cameraEventsHandler</span><span class="p">.</span><span class="na">waitForCameraOpen</span><span class="p">();</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">...</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">VideoTrack</span><span class="w"> </span><span class="n">track</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pcFactory</span><span class="p">.</span><span class="na">createVideoTrack</span><span class="p">(</span><span class="n">trackId</span><span class="p">,</span><span class="w"> </span><span class="n">videoSource</span><span class="p">);</span>
+</code></pre></div>
+<p>设备选择（前置/后置/<code>deviceId</code>）：<code>GetUserMediaImpl.java:297-340</code>；屏幕共享：<code>GetUserMediaImpl.java:552-581</code>（<code>_texture_screen_thread</code>）。</p>
+<h3 id="912-iosavcapture-videoprocessingadapter">9.1.2 iOS：<code>AVCapture</code> + <code>VideoProcessingAdapter</code><a class="headerlink" href="#912-iosavcapture-videoprocessingadapter" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">// flutter_webrtc-1.6.0/common/darwin/Classes/FlutterRTCMediaStream.m:489-520</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">VideoProcessingAdapter</span><span class="w"> </span><span class="o">*</span><span class="n">videoProcessingAdapter</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="p">[[</span><span class="n">VideoProcessingAdapter</span><span class="w"> </span><span class="n">alloc</span><span class="p">]</span><span class="w"> </span><span class="n">initWithRTCVideoSource</span><span class="o">:</span><span class="n">videoSource</span><span class="p">];</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nb">self</span><span class="p">.</span><span class="n">videoCapturer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[[</span><span class="n">RTCCameraVideoCapturer</span><span class="w"> </span><span class="n">alloc</span><span class="p">]</span><span class="w"> </span><span class="n">initWithDelegate</span><span class="o">:</span><span class="n">videoProcessingAdapter</span><span class="p">];</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="bp">AVCaptureDeviceFormat</span><span class="o">*</span><span class="w"> </span><span class="n">selectedFormat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="nb">self</span><span class="w"> </span><span class="n">selectFormatForDevice</span><span class="o">:</span><span class="n">videoDevice</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">                                                        </span><span class="nl">targetWidth</span><span class="p">:</span><span class="n">targetWidth</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">                                                       </span><span class="nl">targetHeight</span><span class="p">:</span><span class="n">targetHeight</span><span class="p">];</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="p">...</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">videoCapturer</span><span class="w"> </span><span class="n">startCaptureWithDevice</span><span class="o">:</span><span class="n">videoDevice</span><span class="w"> </span><span class="n">format</span><span class="o">:</span><span class="n">selectedFormat</span><span class="w"> </span><span class="n">fps</span><span class="o">:</span><span class="n">selectedFps</span><span class="w"> </span><span class="p">...];</span>
+</code></pre></div>
+<p>帧以 <code>RTCVideoFrame + RTCCVPixelBuffer</code> 交付，中间的插槽就是<strong>官方扩展点</strong>（插美颜/水印走这里）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// flutter_webrtc-1.6.0/common/darwin/Classes/VideoProcessingAdapter.m:45-53</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">capturer:</span><span class="p">(</span><span class="n">RTCVideoCapturer</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="nv">capturer</span><span class="w"> </span><span class="nf">didCaptureVideoFrame:</span><span class="p">(</span><span class="n">RTCVideoFrame</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="nv">frame</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="n">os_unfair_lock_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">_lock</span><span class="p">);</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">ExternalVideoProcessingDelegate</span><span class="o">&gt;</span><span class="w"> </span><span class="n">processor</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">_processors</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="n">frame</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="n">processor</span><span class="w"> </span><span class="n">onFrame</span><span class="o">:</span><span class="n">frame</span><span class="p">];</span><span class="w">      </span><span class="c1">// ← 自定义处理</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="p">[</span><span class="n">_videoSource</span><span class="w"> </span><span class="n">capturer</span><span class="o">:</span><span class="n">capturer</span><span class="w"> </span><span class="n">didCaptureVideoFrame</span><span class="o">:</span><span class="n">frame</span><span class="p">];</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="n">os_unfair_lock_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">_lock</span><span class="p">);</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// flutter_webrtc-1.6.0/common/darwin/Classes/VideoProcessingAdapter.h:4-6</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">@protocol</span> <span class="nc">ExternalVideoProcessingDelegate</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="p">-</span> <span class="p">(</span><span class="n">RTCVideoFrame</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">_Nonnull</span><span class="p">)</span><span class="nf">onFrame:</span><span class="p">(</span><span class="n">RTCVideoFrame</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">_Nonnull</span><span class="p">)</span><span class="nv">frame</span><span class="p">;</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">@end</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">两端是同一架构的两种实现</p>
+<p>Android：<code>capturer → SurfaceTextureHelper → VideoSource</code>
+iOS：<code>capturer → VideoProcessingAdapter → RTCVideoSource</code></p>
+</div>
+<h3 id="913">9.1.3 请求尺寸 ≠ 实际尺寸<a class="headerlink" href="#913" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// flutter_webrtc-1.6.0/android/.../GetUserMediaImpl.java:838-856</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1">// Find actual capture format.</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">Size</span><span class="w"> </span><span class="n">actualSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">videoCapturer</span><span class="w"> </span><span class="k">instanceof</span><span class="w"> </span><span class="n">Camera2Capturer</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="n">actualSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Camera2Helper</span><span class="p">.</span><span class="na">findClosestCaptureFormat</span><span class="p">(</span><span class="n">cameraManager</span><span class="p">,</span><span class="w"> </span><span class="n">deviceId</span><span class="p">,</span><span class="w"> </span><span class="n">targetWidth</span><span class="p">,</span><span class="w"> </span><span class="n">targetHeight</span><span class="p">);</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="p">}</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">actualSize</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">info</span><span class="p">.</span><span class="na">width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">actualSize</span><span class="p">.</span><span class="na">width</span><span class="p">;</span><span class="w"> </span><span class="n">info</span><span class="p">.</span><span class="na">height</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">actualSize</span><span class="p">.</span><span class="na">height</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="p">...</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">videoCapturer</span><span class="p">.</span><span class="na">startCapture</span><span class="p">(</span><span class="n">targetWidth</span><span class="p">,</span><span class="w"> </span><span class="n">targetHeight</span><span class="p">,</span><span class="w"> </span><span class="n">targetFps</span><span class="p">);</span>
+</code></pre></div>
+<p>请求 640×480 时硬件可能给 1280×720（找"最接近"的）。<strong>所以 <code>info</code> 记录 actual，<code>startCapture</code> 传 target，中间的差距由 WebRTC 内部 <code>VideoAdapter</code> 补齐</strong>。</p>
+<hr />
+<h2 id="92-pcm">9.2 音频采集：从麦克风到 PCM<a class="headerlink" href="#92-pcm" title="Permanent link">&para;</a></h2>
+<h3 id="921-androidjavaaudiodevicemodule">9.2.1 Android：<code>JavaAudioDeviceModule</code><a class="headerlink" href="#921-androidjavaaudiodevicemodule" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// flutter_webrtc-1.6.0/android/.../MethodCallHandlerImpl.java:256-304</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">if</span><span class="p">(</span><span class="n">bypassVoiceProcessing</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="n">audioDeviceModuleBuilder</span><span class="p">.</span><span class="na">setUseHardwareAcousticEchoCanceler</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">                    </span><span class="p">.</span><span class="na">setUseHardwareNoiseSuppressor</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">                    </span><span class="p">.</span><span class="na">setUseStereoInput</span><span class="p">(</span><span class="kc">true</span><span class="p">).</span><span class="na">setUseStereoOutput</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">                    </span><span class="p">.</span><span class="na">setAudioSource</span><span class="p">(</span><span class="n">MediaRecorder</span><span class="p">.</span><span class="na">AudioSource</span><span class="p">.</span><span class="na">MIC</span><span class="p">);</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="n">audioDeviceModuleBuilder</span><span class="p">.</span><span class="na">setUseHardwareAcousticEchoCanceler</span><span class="p">(</span><span class="n">useHardwareAudioProcessing</span><span class="p">)</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">                    </span><span class="p">.</span><span class="na">setUseLowLatency</span><span class="p">(</span><span class="n">useLowLatency</span><span class="p">)</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">                    </span><span class="p">.</span><span class="na">setUseHardwareNoiseSuppressor</span><span class="p">(</span><span class="n">useHardwareAudioProcessing</span><span class="p">);</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="p">}</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="c1">// 采样率：显式指定 → 设备 PROPERTY_OUTPUT_SAMPLE_RATE → 48000 fallback</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">audioSampleRate</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">audioDeviceModuleBuilder</span><span class="p">.</span><span class="na">setSampleRate</span><span class="p">(</span><span class="n">audioSampleRate</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="p">...</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="n">audioDeviceModuleBuilder</span><span class="p">.</span><span class="na">setSamplesReadyCallback</span><span class="p">(</span><span class="n">recordSamplesReadyCallbackAdapter</span><span class="p">);</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>采样率（默认 48000）</td>
+<td>音质与 CPU 开销</td>
+</tr>
+<tr>
+<td>硬件 AEC / NS</td>
+<td>回声与噪声处理放在系统还是 WebRTC APM</td>
+</tr>
+<tr>
+<td><code>setUseLowLatency</code></td>
+<td><code>AudioRecord</code> 走 FAST track / AAudio，直接影响延迟与功耗</td>
+</tr>
+<tr>
+<td><code>AudioSource</code>（MIC / VOICE_COMMUNICATION）</td>
+<td>后者才带系统级回声消除</td>
+</tr>
+<tr>
+<td><code>setSamplesReadyCallback</code></td>
+<td>拿到<strong>原始 PCM</strong> 的少见出口（录制/监听用）</td>
+</tr>
+</tbody>
+</table>
+<p>创建轨道：<code>GetUserMediaImpl.java:397-399</code> <code>createAudioSource(constraints)</code> → <code>createAudioTrack(...)</code>。</p>
+<h3 id="922-iosaudioengine-adm">9.2.2 iOS：AudioEngine 型 ADM<a class="headerlink" href="#922-iosaudioengine-adm" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// flutter_webrtc-1.6.0/common/darwin/Classes/FlutterWebRTCPlugin.m:370-376</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">RTCAudioDeviceModuleType</span><span class="w"> </span><span class="n">audioDeviceModuleType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">RTCAudioDeviceModuleTypeAudioEngine</span><span class="p">;</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">_peerConnectionFactory</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="p">[[</span><span class="n">RTCPeerConnectionFactory</span><span class="w"> </span><span class="n">alloc</span><span class="p">]</span><span class="w"> </span><span class="n">initWithAudioDeviceModuleType</span><span class="o">:</span><span class="n">audioDeviceModuleType</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">                                              </span><span class="nl">bypassVoiceProcessing</span><span class="p">:</span><span class="n">bypassVoiceProcessing</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">                                                     </span><span class="nl">encoderFactory</span><span class="p">:</span><span class="n">simulcastFactory</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">                                                     </span><span class="nl">decoderFactory</span><span class="p">:</span><span class="n">decoderFactory</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">                                              </span><span class="nl">audioProcessingModule</span><span class="p">:</span><span class="n">_audioManager</span><span class="p">.</span><span class="n">audioProcessingModule</span><span class="p">];</span>
+</code></pre></div>
+<p>用 <code>AVAudioEngine</code>/VoiceProcessing AudioUnit 采集（自带 Apple 的 AEC/NS/AGC）。轨道：<code>FlutterRTCMediaStream.m:159-162</code>。设备变化回调：<code>FlutterWebRTCPlugin.m:2750-2757</code>。</p>
+<div class="admonition note">
+<p class="admonition-title">音频节奏</p>
+<p>每 10ms 一块 PCM（48kHz 时 480 样本/声道）→ APM（AEC → NS → AGC → 高通）→ 编码器。音频<strong>一帧都不能丢</strong>。</p>
+</div>
+<hr />
+<h2 id="93-frame">9.3 Frame 如何变成"可传输的数据"<a class="headerlink" href="#93-frame" title="Permanent link">&para;</a></h2>
+<h3 id="931">9.3.1 编码<a class="headerlink" href="#931" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>视频</th>
+<th>音频</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>组件</td>
+<td><code>VideoStreamEncoder</code> → <code>HardwareVideoEncoder</code>（MediaCodec）/ 软编</td>
+<td><code>AudioEncoderOpus</code></td>
+</tr>
+<tr>
+<td>输入</td>
+<td><code>VideoFrame</code></td>
+<td>10ms PCM</td>
+</tr>
+<tr>
+<td>输出</td>
+<td><code>EncodedImage</code>（H.264 NALU / VP8 帧）</td>
+<td>Opus 帧</td>
+</tr>
+<tr>
+<td>粒度</td>
+<td>一"帧"= 一张图（可丢弃）</td>
+<td>一"帧"= 20ms（默认，含 2×10ms 采样）</td>
+</tr>
+<tr>
+<td>码率</td>
+<td>BWE 反馈动态调整</td>
+<td>6~510 kbps 自适应，支持 DTX（静音不发）</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">// flutter_webrtc-1.6.0/android/.../MethodCallHandlerImpl.java:344-348</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="c1">// Initialize EGL contexts required for HW acceleration.</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">EglBase</span><span class="p">.</span><span class="na">Context</span><span class="w"> </span><span class="n">eglContext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">EglUtils</span><span class="p">.</span><span class="na">getRootEglBaseContext</span><span class="p">();</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">videoEncoderFactory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CustomVideoEncoderFactory</span><span class="p">(</span><span class="n">eglContext</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">);</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">videoDecoderFactory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CustomVideoDecoderFactory</span><span class="p">(</span><span class="n">eglContext</span><span class="p">);</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">为什么硬件编码必须共享 EGL 上下文</p>
+<p><code>MediaCodec</code> 的输入是 <strong>Surface</strong>（libwebrtc 内部实现），编码器要把帧先画到自己的 input Surface。于是整条链「相机纹理 → 缩放 → 编码器 Surface」<strong>全程在 GPU 内，没有一次 CPU 像素拷贝</strong>。共享 root context 是性能前提，不是可选项。</p>
+</div>
+<h3 id="932-rtp">9.3.2 RTP 分包<a class="headerlink" href="#932-rtp" title="Permanent link">&para;</a></h3>
+<ul>
+<li>视频：一帧常被拆成多个包（单包 ≤ MTU，默认 1200B）。H.264 用 <code>FU-A</code>（分片）/<code>STAP-A</code>（聚合）；同一帧的多个包共用 RTP timestamp（90kHz）。</li>
+<li>音频：一个 Opus 帧约几十~几百字节，<strong>一帧就是一个 RTP 包</strong>，timestamp 按样本数递增（48kHz）。</li>
+<li>另有 RTX（重传）、FEC、RED（音频冗余）包——它们是可靠性产物，不是原始数据。</li>
+</ul>
+<h3 id="933">9.3.3 加密与发送<a class="headerlink" href="#933" title="Permanent link">&para;</a></h3>
+<p><code>DTLS-SRTP</code> 握手得到密钥 → SRTP 加密 + 认证 → 交给 ICE 选出的候选对 → UDP（失败退化 TCP/TURN）。</p>
+<h3 id="934">9.3.4 运行中的自适应<a class="headerlink" href="#934" title="Permanent link">&para;</a></h3>
+<ul>
+<li>视频：BWE 估算 → <code>BitrateAllocator</code> → 改码率，必要时降分辨率/帧率；simulcast 切换发送层；</li>
+<li>音频：Opus 改码率、静音 DTX 停发、弱网开 in-band FEC。</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">这就是接收端必须容忍变化的原因</p>
+<p>"尺寸/码率随时变" → 才有 08 章讲的「尺寸变化必须重建承载物」这条硬约定。</p>
+</div>
+<hr />
+<h2 id="94">9.4 "数据流的格式"到底指什么（四层）<a class="headerlink" href="#94" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>视频</th>
+<th>音频</th>
+<th>Dart 可见</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① 网络</td>
+<td>RTP/SRTP + H.264/VP8/AV1 码流</td>
+<td>RTP/Opus 20ms 帧</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>② 解码输出</td>
+<td><code>VideoFrame</code> = Buffer + rotation + timestampNs + colorSpace</td>
+<td>PCM + sampleRate + channels</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>③ 交给引擎</td>
+<td>iOS：<code>CVPixelBuffer</code>(BGRA/NV12)；Android：<code>SurfaceTexture</code> buffer</td>
+<td>不进引擎，直接进 ADM</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>④ Dart</td>
+<td>只有 <code>textureId</code> + 尺寸/首帧事件</td>
+<td>只有 <code>setVolume/enabled</code></td>
+<td>✅（仅句柄）</td>
+</tr>
+</tbody>
+</table>
+<p>② 的 <code>VideoFrame.Buffer</code> 可能是 <strong>I420Buffer / NV12Buffer / TextureBuffer / RGBABuffer</strong> 之一。所以"格式"在不同层指的不是同一件事。</p>
+<h3 id="_1">一帧视频的完整描述信息<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>像素排列</strong>：I420（Y/U/V 三平面）/ NV12（Y + 交错 UV）/ BGRA / ARGB；</li>
+<li><strong>stride（行跨度）</strong> ⚠️ 最容易翻车：</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">// flutter_webrtc-1.6.0/android/.../record/FrameCapturer.java:75-79</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="c1">// We omit the strides here. If they were included, the resulting image would</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1">// have its colors offset.</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="kc">null</span><span class="p">);</span>
+</code></pre></div>
+<p>平面真实行字节数常大于 <code>width</code>，忽略 stride 必然偏色/斜纹；
+- <strong>尺寸</strong>：解码帧尺寸，不是显示尺寸；
+- <strong>rotation</strong>：WebRTC 把旋转放在<strong>元数据</strong>里，像素往往没转。Android 用它设 surface 尺寸（<code>SurfaceTextureRenderer.java:103,116</code>）；iOS 真的转像素：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1">// flutter_webrtc-1.6.0/common/darwin/Classes/FlutterRTCVideoRenderer.m:96-127</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="p">-</span> <span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">RTCI420Buffer</span><span class="o">&gt;</span><span class="p">)</span><span class="nf">correctRotation:</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">id</span><span class="o">&lt;</span><span class="n">RTCI420Buffer</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">src</span><span class="w"> </span><span class="nf">withRotation:</span><span class="p">(</span><span class="n">RTCVideoRotation</span><span class="p">)</span><span class="nv">rotation</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="c1">// 90/270 时交换宽高，再 I420Rotate</span>
+</code></pre></div>
+<ul>
+<li><strong>颜色范围</strong>：video range(16-235) vs full range(0-255)，弄错就是发灰或过曝（iOS 专门按格式分支处理，<code>FlutterRTCVideoRenderer.m:135-187</code>）；</li>
+<li><strong>时间戳</strong>：判过期与音画同步；</li>
+<li><strong>引用计数</strong>：跨线程必须成对 <code>retain/release</code>：</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">// flutter_webrtc-1.6.0/android/.../record/FrameCapturer.java:43-44, 80-81</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">videoFrame</span><span class="p">.</span><span class="na">retain</span><span class="p">();</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">VideoFrame</span><span class="p">.</span><span class="na">Buffer</span><span class="w"> </span><span class="n">buffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">videoFrame</span><span class="p">.</span><span class="na">getBuffer</span><span class="p">();</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="p">...</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="n">i420Buffer</span><span class="p">.</span><span class="na">release</span><span class="p">();</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="n">videoFrame</span><span class="p">.</span><span class="na">release</span><span class="p">();</span>
+</code></pre></div>
+<hr />
+<h2 id="95">9.5 采集端与渲染端的约定清单<a class="headerlink" href="#95" title="Permanent link">&para;</a></h2>
+<div class="admonition important">
+<p class="admonition-title">核心认知</p>
+<p><strong>不是"两端互相约定"，而是两端各自与中间层签约</strong>——中间层 = WebRTC 运行时 + Flutter 引擎。</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>约定</th>
+<th>Android 体现</th>
+<th>iOS 体现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一</td>
+<td>交付接口：<code>VideoSink.onFrame</code> / <code>renderFrame:</code></td>
+<td><code>videoTrack.addSink(renderer)</code>（<code>FlutterRTCVideoRenderer.java:265</code>）</td>
+<td><code>[videoTrack addRenderer:self]</code>（<code>.m:91</code>）</td>
+</tr>
+<tr>
+<td>二</td>
+<td>帧的描述信息必须被完整尊重（stride/rotation/range/timestamp）</td>
+<td><code>getRotatedWidth/Height</code></td>
+<td><code>correctRotation:</code> + 按格式分支转换</td>
+</tr>
+<tr>
+<td>三</td>
+<td><strong>共享同一个 root EGL 上下文</strong></td>
+<td><code>EglUtils.getRootEglBaseContext()</code></td>
+<td>（GPU 侧由 IOSurface 承担等价职责）</td>
+</tr>
+<tr>
+<td>四</td>
+<td>与引擎的纹理契约（尺寸变→重建；新帧要通知）</td>
+<td><code>producer.setSize</code> + 重建 EGLSurface；引擎自监听</td>
+<td>重建 <code>CVPixelBuffer</code>；主动 <code>textureFrameAvailable:</code></td>
+</tr>
+<tr>
+<td>五</td>
+<td>跨端协商（SDP/RTP），<strong>渲染端不参与</strong></td>
+<td>同</td>
+<td>同</td>
+</tr>
+<tr>
+<td>六</td>
+<td><code>constraints</code> 是期望不是承诺</td>
+<td><code>findClosestCaptureFormat</code></td>
+<td><code>selectFormatForDevice:</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="root-eglbase">约定三（最硬、最易踩）：全局唯一 root EglBase<a class="headerlink" href="#root-eglbase" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1">// flutter_webrtc-1.6.0/android/.../utils/EglUtils.java:7-34</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="cm">/**</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="cm"> * The root EglBase instance shared by the entire application ...</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="cm"> */</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="n">EglBase</span><span class="w"> </span><span class="n">rootEglBase</span><span class="p">;</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">synchronized</span><span class="w"> </span><span class="n">EglBase</span><span class="w"> </span><span class="nf">getRootEglBase</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>位置</th>
+<th>用的 context</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>摄像头采集</td>
+<td><code>GetUserMediaImpl.java:797-799</code></td>
+<td>root</td>
+</tr>
+<tr>
+<td>屏幕采集</td>
+<td><code>GetUserMediaImpl.java:556-557</code></td>
+<td>root</td>
+</tr>
+<tr>
+<td>渲染</td>
+<td><code>FlutterRTCVideoRenderer.java:107,251</code></td>
+<td>root</td>
+</tr>
+<tr>
+<td>编解码器</td>
+<td><code>MethodCallHandlerImpl.java:344-348</code></td>
+<td>root</td>
+</tr>
+<tr>
+<td>录制</td>
+<td><code>MediaRecorderImpl.java:41</code></td>
+<td>root</td>
+</tr>
+</tbody>
+</table>
+<p>违反后果：<code>mismatched context</code> 异常、黑屏、掉帧。</p>
+<h3 id="_2">约定五：跨端协商的其实是这些<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>编解码器与参数：payload type、<code>rtpmap</code>、<code>fmtp</code>（H.264 的 <code>profile-level-id</code>）、Opus 采样率；</li>
+<li>方向：<code>sendrecv/sendonly/recvonly</code>；</li>
+<li>RTP header extension：<code>abs-send-time</code>、<code>transport-cc</code>、<strong><code>urn:3gpp:video-orientation</code>（旋转信息的真正来源）</strong>、<code>mid</code>/<code>rid</code>、<code>audio-level</code>；</li>
+<li>ICE/DTLS 参数、ssrc、bundle。</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">渲染端从不告诉对端"我能渲染什么格式"</p>
+<p>"画面是 90°/270°" 是发送端通过 header extension 告诉接收端的，接收端再塞进 <code>rotation</code>，最终由渲染端应用。</p>
+</div>
+<hr />
+<h2 id="96">9.6 约定是"怎么确定"的<a class="headerlink" href="#96" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>约定</th>
+<th>确定方式</th>
+<th>违反后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>接口签名</td>
+<td>编译期类型系统</td>
+<td>编译不过</td>
+</tr>
+<tr>
+<td>回调不在主线程、不得阻塞</td>
+<td>运行期惯例/源码</td>
+<td>卡顿、掉帧、ANR</td>
+</tr>
+<tr>
+<td>帧所有权 retain/release 配对</td>
+<td>运行期契约</td>
+<td>泄漏 / use-after-free</td>
+</tr>
+<tr>
+<td>stride、rotation、range 被尊重</td>
+<td><code>VideoFrame</code> 字段定义</td>
+<td>偏色、斜纹、横竖颠倒</td>
+</tr>
+<tr>
+<td>共享 root EGL context</td>
+<td>单例懒加载（启动即定）</td>
+<td>mismatched context、黑屏</td>
+</tr>
+<tr>
+<td>iOS 用 IOSurface 背衬 buffer</td>
+<td>引擎要求</td>
+<td>CPU 上传、掉帧发热</td>
+</tr>
+<tr>
+<td>尺寸变化重建承载物</td>
+<td>引擎 API 行为</td>
+<td>拉伸、持续模糊</td>
+</tr>
+<tr>
+<td>新帧显式通知（iOS）/引擎自监听（Android）</td>
+<td>引擎注册 API 契约</td>
+<td>画面不动</td>
+</tr>
+<tr>
+<td>编解码/方向/扩展头</td>
+<td>offer/answer + RTP header extension</td>
+<td>解不出、方向错</td>
+</tr>
+<tr>
+<td>分辨率/帧率可被改写</td>
+<td>设备能力 + BWE 自适应</td>
+<td>假设固定尺寸的代码必错</td>
+</tr>
+<tr>
+<td>时间戳以采集端为基准</td>
+<td>采集端写入 + RTCP SR</td>
+<td>音画不同步、延迟累积</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="97-constraints">9.7 constraints 是期望，不是承诺<a class="headerlink" href="#97-constraints" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1">// rephone-security/lib/services/signaling.dart:607-623</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="kd">final</span><span class="w"> </span><span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span><span class="w"> </span><span class="kt">dynamic</span><span class="o">&gt;</span><span class="w"> </span><span class="n">mediaConstraints</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span><span class="s1">'audio'</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">  </span><span class="s1">'video'</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">          </span><span class="s1">'mandatory'</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">            </span><span class="s1">'minWidth'</span><span class="o">:</span><span class="w"> </span><span class="s1">'640'</span><span class="p">,</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">            </span><span class="s1">'minHeight'</span><span class="o">:</span><span class="w"> </span><span class="s1">'480'</span><span class="p">,</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">            </span><span class="s1">'minFrameRate'</span><span class="o">:</span><span class="w"> </span><span class="s1">'30'</span><span class="p">,</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">          </span><span class="p">},</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">          </span><span class="s1">'facingMode'</span><span class="o">:</span><span class="w"> </span><span class="n">_currentFacingMode</span><span class="p">,</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">          </span><span class="s1">'optional'</span><span class="o">:</span><span class="w"> </span><span class="p">[],</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="p">};</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="n">stream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kd">await</span><span class="w"> </span><span class="n">navigator</span><span class="p">.</span><span class="n">mediaDevices</span><span class="p">.</span><span class="n">getUserMedia</span><span class="p">(</span><span class="n">mediaConstraints</span><span class="p">);</span>
+</code></pre></div>
+<p>640×480@30 只是发给采集端的<strong>下限/期望</strong>，最终值会被三层改写：</p>
+<ol>
+<li><strong>设备能力</strong>：<code>findClosestCaptureFormat</code> / <code>selectFormatForDevice:</code> 挑最接近的；</li>
+<li><strong>WebRTC 内部适配</strong>：<code>VideoAdapter</code> 缩放、降帧；</li>
+<li><strong>带宽自适应</strong>：BWE 触发分辨率/帧率下调、simulcast 切层。</li>
+</ol>
+<p>→ 渲染端<strong>永远不能假设分辨率固定</strong>，必须订阅尺寸变化（08 章 8.3 / 8.4）。</p>
+<hr />
+<h2 id="98">9.8 想自己处理帧：三条路线<a class="headerlink" href="#98" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>诉求</th>
+<th>可行性</th>
+<th>做法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>只显示 WebRTC 画面</td>
+<td>✅ 无需懂格式</td>
+<td><code>srcObject = stream</code>，插件全包</td>
+</tr>
+<tr>
+<td>显示"自己处理过的帧"（美颜/水印/遮挡）</td>
+<td>⚠️ 必须写平台代码</td>
+<td>iOS 实现 <code>ExternalVideoProcessingDelegate</code>（9.1.2）；Android 自定义 <code>VideoSink</code> 或继承 <code>VideoProcessor</code>，并把结果按引擎契约上屏</td>
+</tr>
+<tr>
+<td>用非 WebRTC 数据源渲染</td>
+<td>⚠️ 同上</td>
+<td>自建纹理：Android 自己 <code>createSurfaceProducer()</code> 拿 Surface 画；iOS 自己实现 <code>FlutterTexture</code> 返回 IOSurface 背衬的 <code>CVPixelBuffer</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title"><code>RTCVideoRenderer</code> 的入口只吃 <code>MediaStreamTrack</code></p>
+<p>不能给它塞裸帧。想塞自定义数据，就要自己注册纹理并遵守 9.5 的约定四。</p>
+</div>
+<hr />
+<h2 id="99">9.9 坑位对照表<a class="headerlink" href="#99" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>根因</th>
+<th>出处</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>颜色错位 / 斜纹</td>
+<td>用 <code>width</code> 当 stride</td>
+<td><code>FrameCapturer.java:75-79</code> 注释</td>
+</tr>
+<tr>
+<td>画面横竖颠倒</td>
+<td><code>rotation</code> 元数据未应用</td>
+<td><code>FlutterRTCVideoRenderer.m:96-127</code></td>
+</tr>
+<tr>
+<td>画面发灰 / 过曝</td>
+<td>video range vs full range 处理错</td>
+<td><code>FlutterRTCVideoRenderer.m:135-187</code></td>
+</tr>
+<tr>
+<td>拉伸 / 一直模糊</td>
+<td>尺寸与帧不符或变化未重建</td>
+<td><code>SurfaceTextureRenderer.java:99-123</code></td>
+</tr>
+<tr>
+<td>Android 崩溃/黑屏</td>
+<td>自己建了 EGL context，未共享 root</td>
+<td><code>EglUtils.java:7-34</code></td>
+</tr>
+<tr>
+<td>iOS 掉帧发热</td>
+<td><code>CVPixelBuffer</code> 未带 IOSurface</td>
+<td><code>FlutterRTCVideoRenderer.m:258-269</code></td>
+</tr>
+<tr>
+<td>静音后还有流量</td>
+<td>Opus DTX 未开 / track 未 <code>enabled=false</code></td>
+<td>09.3.4</td>
+</tr>
+<tr>
+<td>请求 640 得到 720</td>
+<td>设备格式选择 + Adapter 适配</td>
+<td>09.1.3</td>
+</tr>
+<tr>
+<td>截图偶发长时间不返回</td>
+<td><code>captureFrame</code> 被动等下一帧，原生无超时</td>
+<td>08.10.1 / 07 章 P2</td>
+</tr>
+<tr>
+<td>截图整块全透明</td>
+<td>离屏路径缺 <code>aiks_context</code>，外部纹理解析失败（macOS）</td>
+<td>08.10.3 / 07 章 P3</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="910">9.10 对应本项目<a class="headerlink" href="#910" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>signaling.dart createStream(mediaConstraints)        ← 只给"期望"
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>   ↓ MethodChannel getUserMedia
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>平台：开相机/麦克风 → VideoSource/AudioSource → Track（句柄）
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>   ↓
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>pc.addTrack(track)                                   ← 此时才挂上编码器 sink
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>   ↓
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>编码 → RTP → SRTP → ICE → UDP
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>   ↓（对端）
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>onTrack → RTCVideoRenderer.srcObject → textureId → 引擎合成
+</code></pre></div>
+<ul>
+<li>相机端常驻采集：<code>rephone-security/lib/pages/camera_endpoint_page.dart</code>；</li>
+<li>监控端只看画面：<code>monitor_viewer_page.dart:86-88</code>（<code>initialize()</code> 一次，全程复用 textureId）；</li>
+<li>对讲音频走同一采集链路：<code>signaling.dart:254-266</code>（<code>_monitorMicStream</code>）。</li>
+</ul>
+<hr />
+<p><strong>上一章</strong>：<a href="../08-%E5%AA%92%E4%BD%93%E6%B5%81%E4%B8%8E%E6%B8%B2%E6%9F%93%E9%93%BE%E8%B7%AF/">08 媒体流与渲染链路（穿透 Native）</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 WebRTC 伴随手册
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.top", "navigation.tracking", "content.code.copy", "content.code.annotate", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

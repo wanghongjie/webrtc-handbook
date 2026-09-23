@@ -1,0 +1,2259 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="在 Rephone Security 项目（相机端 App + flutter-webrtc-server 信令服务）中边做边写的 WebRTC 学习笔记与踩坑记录">
+      
+      
+        <meta name="author" content="wanghongjie">
+      
+      
+        <link rel="canonical" href="https://wanghongjie.github.io/webrtc-handbook/04-%E4%BF%A1%E4%BB%A4%E4%B8%8E%E8%BF%9E%E6%8E%A5%E5%BB%BA%E7%AB%8B/">
+      
+      
+        <link rel="prev" href="../03-%E9%9F%B3%E8%A7%86%E9%A2%91%E4%B8%8E%E5%AA%92%E4%BD%93%E5%9F%BA%E7%A1%80/">
+      
+      
+        <link rel="next" href="../05-%E7%8A%B6%E6%80%81%E6%9C%BA%E4%B8%8E%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>04 · 信令与连接建立 - WebRTC 伴随手册</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#04" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="WebRTC 伴随手册" class="md-header__button md-logo" aria-label="WebRTC 伴随手册" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            WebRTC 伴随手册
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              04 · 信令与连接建立
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="WebRTC 伴随手册" class="md-nav__button md-logo" aria-label="WebRTC 伴随手册" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    WebRTC 伴随手册
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-WebRTC-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 · WebRTC 基础概念
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-WebRTC-%E6%9C%AF%E8%AF%AD%E9%80%9F%E6%9F%A5%E8%A1%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02 · 术语速查表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-%E9%9F%B3%E8%A7%86%E9%A2%91%E4%B8%8E%E5%AA%92%E4%BD%93%E5%9F%BA%E7%A1%80/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03 · 音视频与媒体基础
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04 · 信令与连接建立
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04 · 信令与连接建立
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        与现成资料的关系（先读这份，再回来加深）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#40-https-vs-wss-turn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.0 先修：HTTPS vs WSS、本项目两个端点、以及 TURN 到底干什么
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.0 先修：HTTPS vs WSS、本项目两个端点、以及 TURN 到底干什么">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#401-https-wss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.0.1 HTTPS 与 WSS 的区别：同一层加密，不同层协议
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.0.1 HTTPS 与 WSS 的区别：同一层加密，不同层协议">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#httpsws-wss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一个小坑：代码里写的是 https://.../ws，为什么说它是 wss://？
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#402-webrtc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.0.2 两个端点在 WebRTC 里的分工
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#403-turn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.0.3 深挖：TURN 到底干什么？（打不通时的中继兜底）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.0.3 深挖：TURN 到底干什么？（打不通时的中继兜底）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么需要它：NAT 是头号障碍
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ice-relay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ICE 的三类候选：relay 是兜底
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#turn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么 TURN 需要「凭据」：防止被白嫖
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        本项目的完整闭环（签发 → 使用 → 校验）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        几个容易踩的点
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#41-42-4446" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        章节内容（4.1 / 4.2 / 4.4–4.6 待填充）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="章节内容（4.1 / 4.2 / 4.4–4.6 待填充）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-webrtc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 为什么 WebRTC 需要"外部信令"（先立观念）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-offeranswer-rfc-3264" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Offer/Answer 模型（RFC 3264）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-ice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 ICE 与候选交换（连接建立的核心难点）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.3 ICE 与候选交换（连接建立的核心难点）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#431-iceservers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.1 先破除误解：iceServers 是「服务器清单」，不是「候选清单」
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#432" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.2 候选三兄弟的产生条件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#433-turn4725124221319302" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.3 turn:47.251.242.213:19302 到底是谁在和谁通信？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#434-stun" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.4 STUN 探测：怎么问出「我的公网地址」
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#435-turn-allocate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.5 TURN Allocate：怎么申请一个中继地址（含鉴权）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#436-ice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.6 完整 ICE 流程：收集 → 交换 → 检查 → 选路
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#437-trickle-ice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.7 trickle ICE 与候选乱序
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#438-onicecandidate-sleep-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.8 为什么 onIceCandidate 发送前 sleep 1 秒
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#439" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.9 候选报文的格式与转发：发 → 路由 → 收 三跳拆解
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.3.9 候选报文的格式与转发：发 → 路由 → 收 三跳拆解">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        发的三个字段：候选本体 + 归属信息
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#candidate-rfc-5245-151" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        candidate 字符串的格式（RFC 5245 §15.1）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        服务端：几乎不解析，只认 to
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        收端：这里才真正「解析 + 重组」
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        这一跳在整体流程中的位置
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-dtls-srtp03" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 DTLS 与 SRTP（先占位，03 章之外的安全面）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 本项目信令转发实现剖析（服务端视角）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 一次完整呼叫的报文时间线（验证所学）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        待填充清单
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        对应本项目（索引）
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-%E7%8A%B6%E6%80%81%E6%9C%BA%E4%B8%8E%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05 · 状态机与生命周期
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E5%9C%B0%E5%9B%BE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    06 · 项目代码地图
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-%E9%97%AE%E9%A2%98%E4%B8%8E%E5%9D%91%E4%BD%8D%E8%AE%B0%E5%BD%95/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07 · 问题与坑位记录
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-%E5%AA%92%E4%BD%93%E6%B5%81%E4%B8%8E%E6%B8%B2%E6%9F%93%E9%93%BE%E8%B7%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    08 · 媒体流与渲染链路
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-%E9%87%87%E9%9B%86%E7%AB%AF%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F%E7%BA%A6%E5%AE%9A/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    09 · 采集端与数据格式约定
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        与现成资料的关系（先读这份，再回来加深）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#40-https-vs-wss-turn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.0 先修：HTTPS vs WSS、本项目两个端点、以及 TURN 到底干什么
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.0 先修：HTTPS vs WSS、本项目两个端点、以及 TURN 到底干什么">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#401-https-wss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.0.1 HTTPS 与 WSS 的区别：同一层加密，不同层协议
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.0.1 HTTPS 与 WSS 的区别：同一层加密，不同层协议">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#httpsws-wss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一个小坑：代码里写的是 https://.../ws，为什么说它是 wss://？
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#402-webrtc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.0.2 两个端点在 WebRTC 里的分工
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#403-turn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.0.3 深挖：TURN 到底干什么？（打不通时的中继兜底）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.0.3 深挖：TURN 到底干什么？（打不通时的中继兜底）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么需要它：NAT 是头号障碍
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ice-relay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ICE 的三类候选：relay 是兜底
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#turn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么 TURN 需要「凭据」：防止被白嫖
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        本项目的完整闭环（签发 → 使用 → 校验）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        几个容易踩的点
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#41-42-4446" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        章节内容（4.1 / 4.2 / 4.4–4.6 待填充）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="章节内容（4.1 / 4.2 / 4.4–4.6 待填充）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-webrtc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 为什么 WebRTC 需要"外部信令"（先立观念）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-offeranswer-rfc-3264" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Offer/Answer 模型（RFC 3264）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-ice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 ICE 与候选交换（连接建立的核心难点）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.3 ICE 与候选交换（连接建立的核心难点）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#431-iceservers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.1 先破除误解：iceServers 是「服务器清单」，不是「候选清单」
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#432" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.2 候选三兄弟的产生条件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#433-turn4725124221319302" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.3 turn:47.251.242.213:19302 到底是谁在和谁通信？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#434-stun" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.4 STUN 探测：怎么问出「我的公网地址」
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#435-turn-allocate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.5 TURN Allocate：怎么申请一个中继地址（含鉴权）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#436-ice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.6 完整 ICE 流程：收集 → 交换 → 检查 → 选路
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#437-trickle-ice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.7 trickle ICE 与候选乱序
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#438-onicecandidate-sleep-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.8 为什么 onIceCandidate 发送前 sleep 1 秒
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#439" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3.9 候选报文的格式与转发：发 → 路由 → 收 三跳拆解
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.3.9 候选报文的格式与转发：发 → 路由 → 收 三跳拆解">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        发的三个字段：候选本体 + 归属信息
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#candidate-rfc-5245-151" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        candidate 字符串的格式（RFC 5245 §15.1）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        服务端：几乎不解析，只认 to
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        收端：这里才真正「解析 + 重组」
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        这一跳在整体流程中的位置
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-dtls-srtp03" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 DTLS 与 SRTP（先占位，03 章之外的安全面）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 本项目信令转发实现剖析（服务端视角）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 一次完整呼叫的报文时间线（验证所学）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        待填充清单
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        对应本项目（索引）
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="04">04 信令与连接建立<a class="headerlink" href="#04" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>状态：🟡 骨架 + 4.0 / 4.3 已填充 ｜ 难度：★★☆☆☆
+本章要解决的问题：<strong>两个设备怎么通过服务器互相找到、交换能力清单、最终打通 P2P？</strong></p>
+</blockquote>
+<hr />
+<h2 id="_1">与现成资料的关系（先读这份，再回来加深）<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>⚠️ <strong>结论先行版</strong>（本项目连通全链路、含完整时序图）已有一份深度文档：</p>
+<blockquote>
+<p>📄 <code>../监控端WebRTC信令连通逻辑.md</code>（即 <code>docs/监控端WebRTC信令连通逻辑.md</code>）</p>
+</blockquote>
+<p>本章作为其<strong>"为什么这么设计"的概念深化篇</strong>：把每一步背后的 WebRTC 原理讲透，把连接建立过程拆成通用知识（不只适用于本项目）。</p>
+<hr />
+<h2 id="40-https-vs-wss-turn">4.0 先修：HTTPS vs WSS、本项目两个端点、以及 TURN 到底干什么<a class="headerlink" href="#40-https-vs-wss-turn" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>状态：🟢 已填充
+对应代码：<code>flutter-webrtc-server/pkg/websocket/server.go</code>、<code>flutter-webrtc-server/pkg/signaler/signaler.go</code>；客户端 <code>rephone-security/lib/services/{signaling,websocket,turn}.dart</code></p>
+</blockquote>
+<p>新手第一次看到本项目这两个地址时，几乎都会卡在同一个问题：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>wss://rephone.top:8086/ws          ← 信令
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>https://rephone.top:8086/api/turn  ← TURN 凭据
+</code></pre></div>
+<p>一个 <code>wss://</code>、一个 <code>https://</code>，端口还一样（都是 <code>8086</code>），到底什么关系？下面先拆「HTTPS vs WSS」，再拆「这两个地址在 WebRTC 里的分工」。</p>
+<h3 id="401-https-wss">4.0.1 HTTPS 与 WSS 的区别：同一层加密，不同层协议<a class="headerlink" href="#401-https-wss" title="Permanent link">&para;</a></h3>
+<p>一句话结论：</p>
+<blockquote>
+<p><strong>WSS = WebSocket over TLS，HTTPS = HTTP over TLS。两者共用同一个 TLS 加密底座，区别只在 TLS 之上的「应用层协议」是 WebSocket 还是 HTTP。</strong></p>
+</blockquote>
+<p>用生活化比喻：</p>
+<ul>
+<li><strong>TLS（俗称 SSL）</strong> = 一条加密隧道，负责「别人偷看不到、也改不了」。</li>
+<li><strong>HTTP</strong> = 隧道里跑的「一问一答快递」：客户端提一个请求，服务器回一个响应，然后连接可以关掉。</li>
+<li><strong>WebSocket</strong> = 隧道里跑的「双向对讲专线」：握手一次后，双方随时都能主动说话，连接一直挂着。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>HTTPS (<code>https://</code>)</th>
+<th>WSS (<code>wss://</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>全称</td>
+<td>HTTP over TLS</td>
+<td>WebSocket over TLS</td>
+</tr>
+<tr>
+<td>加密层</td>
+<td>TLS（相同）</td>
+<td>TLS（相同）</td>
+</tr>
+<tr>
+<td>应用层协议</td>
+<td>HTTP：请求-响应</td>
+<td>WebSocket：全双工长连接</td>
+</tr>
+<tr>
+<td>通信方向</td>
+<td>基本是「客户端问、服务器答」</td>
+<td>双方都可以随时主动推消息</td>
+</tr>
+<tr>
+<td>连接寿命</td>
+<td>通常一次请求/响应就结束</td>
+<td>建立后长期保持</td>
+</tr>
+<tr>
+<td>握手方式</td>
+<td>TLS 握手</td>
+<td>TLS 握手 + HTTP <code>Upgrade: websocket</code> 升级</td>
+</tr>
+<tr>
+<td>典型用途</td>
+<td>拉一次数据（如取 TURN 凭据、查列表）</td>
+<td>需要服务器主动推送（如信令转发、在线状态）</td>
+</tr>
+<tr>
+<td>明文对应物</td>
+<td><code>http://</code></td>
+<td><code>ws://</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>记忆口诀：<strong><code>s</code> 代表 TLS（加密），前面的 <code>http</code> / <code>ws</code> 才是「说话方式」。</strong> 所以 <code>wss://</code> 和 <code>https://</code> 不是「两种安全等级」，而是「同一种安全，两种说话方式」。</p>
+</blockquote>
+<h4 id="httpsws-wss">一个小坑：代码里写的是 <code>https://.../ws</code>，为什么说它是 <code>wss://</code>？<a class="headerlink" href="#httpsws-wss" title="Permanent link">&para;</a></h4>
+<p>看客户端 <code>rephone-security/lib/services/signaling.dart</code>（约 493 行）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">var</span><span class="w"> </span><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'https://</span><span class="si">$</span><span class="n">_host</span><span class="s1">:</span><span class="si">$</span><span class="n">_port</span><span class="s1">/ws'</span><span class="p">;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">_socket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SimpleWebSocket</span><span class="p">(</span><span class="n">url</span><span class="p">);</span>
+</code></pre></div>
+<p>再看 <code>services/websocket.dart</code> 的 <code>_connectForSelfSignedCert()</code>：它<strong>没有</strong>直接用 <code>WebSocket.connect</code>，而是自己用 <code>HttpClient</code> 发了一个 HTTPS 请求，手动加上：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">request</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="s1">'Connection'</span><span class="p">,</span><span class="w"> </span><span class="s1">'Upgrade'</span><span class="p">);</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">request</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="s1">'Upgrade'</span><span class="p">,</span><span class="w"> </span><span class="s1">'websocket'</span><span class="p">);</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">request</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="s1">'Sec-WebSocket-Version'</span><span class="p">,</span><span class="w"> </span><span class="s1">'13'</span><span class="p">);</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">request</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="s1">'Sec-WebSocket-Key'</span><span class="p">,</span><span class="w"> </span><span class="n">key</span><span class="p">);</span>
+</code></pre></div>
+<p>拿到 <code>101 Switching Protocols</code> 后，再用 <code>WebSocket.fromUpgradedSocket()</code> 把这条连接「升级」成 WebSocket。</p>
+<p>也就是说：<strong><code>wss://host/ws</code> 在协议层等价于「先用 HTTPS 连到 <code>/ws</code>，再通过 HTTP Upgrade 升级成 WebSocket」</strong>。本项目为了放行自签证书（<code>badCertificateCallback = true</code>）走了手动升级这条路，所以 URL 写成了 <code>https://</code>；但语义上它就是 <code>wss://</code>。服务端 <code>pkg/websocket/server.go</code> 的 <code>handleWebSocketRequest()</code> 用 <code>upgrader.Upgrade()</code> 完成另一半升级，并由 <code>http.ListenAndServeTLS()</code>（即 HTTPS）统一对外提供服务。</p>
+<h3 id="402-webrtc">4.0.2 两个端点在 WebRTC 里的分工<a class="headerlink" href="#402-webrtc" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>地址</th>
+<th>协议 / 角色</th>
+<th>干什么</th>
+<th>何时被调用</th>
+<th>代码位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>wss://rephone.top:8086/ws</code></td>
+<td>WebSocket：<strong>信令通道</strong></td>
+<td>设备注册(<code>new</code>)、广播在线名册(<code>peers</code>)、转发 <code>offer/answer/candidate/bye</code>、心跳 <code>keepalive</code></td>
+<td>建连全程（从建连前到会话结束）</td>
+<td>客户端 <code>signaling.dart</code> <code>connect()</code>；服务端 <code>signaler.go</code> <code>HandleNewWebSocket()</code></td>
+</tr>
+<tr>
+<td><code>https://rephone.top:8086/api/turn</code></td>
+<td>HTTP：<strong>TURN 凭据签发接口</strong></td>
+<td>动态签发一组有时效的 TURN 用户名/密码（HMAC-SHA1 计算），供 <code>RTCPeerConnection</code> 打洞失败时中继媒体</td>
+<td>每次 <code>connect()</code> 时拉一次（本项目缓存到 <code>_turnCredential</code>）</td>
+<td>客户端 <code>turn.dart</code> <code>getTurnCredential()</code>；服务端 <code>signaler.go</code> <code>HandleTurnServerCredentials()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>为什么一个必须用 WSS、另一个用 HTTPS 就够了？</strong></p>
+<ul>
+<li>信令是「服务器随时要主动推给你」的场景：相机上线要广播、有人呼叫你要转发 offer……如果只有 HTTPS，客户端得不停轮询，既慢又费。所以信令用<strong>长连接 WSS</strong>。</li>
+<li>取 TURN 凭据是「问一次拿一次」的场景：拿到 JSON 就完事，不需要长连接，所以用<strong>普通 HTTPS 请求</strong>即可。</li>
+</ul>
+<p><strong>两者如何协作（一次连接建立里的先后顺序）：</strong></p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant C as 客户端(Signaling.connect)
+    participant S as flutter-webrtc-server:8086
+
+    C-&gt;&gt;S: HTTPS GET /api/turn?service=turn&amp;username=...
+    S--&gt;&gt;C: 200 {username, password, ttl, uris:["turn:...?transport=udp"]}
+    Note over C: 填入 RTCPeerConnection 的 iceServers
+    C-&gt;&gt;S: 对 /ws 发起 HTTPS 并请求 Upgrade
+    S--&gt;&gt;C: 101 Switching Protocols（升级为 WSS）
+    C-&gt;&gt;S: {"type":"new", id,...}
+    S--&gt;&gt;C: {"type":"peers", ...}
+    Note over C,S: offer/answer/candidate 经 /ws 转发
+    Note over C: ICE 使用 /api/turn 下发的凭据去 relay（打洞失败时）</code></pre>
+<p>关键点：</p>
+<ol>
+<li><strong><code>/api/turn</code> 不参与信令</strong>，它只负责「发钥匙」：客户端拿到 <code>username/password/uris</code> 后，塞进 <code>RTCPeerConnection</code> 的 <code>iceServers</code>（见 <code>signaling.dart</code> 约 509–517 行）。</li>
+<li><strong><code>/ws</code> 不碰媒体</strong>，它只转发「小纸条」（SDP、ICE 候选）。媒体最终走 ICE 选出的通路；只有直连打不通时，才由 TURN 服务器中继——这正是 <code>/api/turn</code> 下发的凭据在起作用。</li>
+<li>端口相同（<code>8086</code>）只是<strong>同一台服务器复用同一个 TLS 监听</strong>：Go 的 <code>http.ListenAndServeTLS</code> 同时承载 <code>/ws</code>（升级为 WebSocket）和 <code>/api/turn</code>（普通 HTTP）。URL 里 scheme 不同，物理上是同一个 HTTPS 服务。</li>
+</ol>
+<blockquote>
+<p>一句话总结：<strong><code>/api/turn</code> 负责「发中继钥匙」（HTTPS，拉一次）；<code>/ws</code> 负责「传信令小纸条」（WSS，长连接）。</strong></p>
+</blockquote>
+<h3 id="403-turn">4.0.3 深挖：TURN 到底干什么？（打不通时的中继兜底）<a class="headerlink" href="#403-turn" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>状态：🟢 已填充
+对应代码：<code>flutter-webrtc-server/pkg/signaler/signaler.go</code>、<code>pkg/turn/turn.go</code>、<code>configs/config.ini</code>；客户端 <code>rephone-security/lib/services/{turn,signaling}.dart</code></p>
+</blockquote>
+<p><strong>一句话：TURN 是 P2P 打洞失败时的「媒体中继服务器」。</strong></p>
+<p>WebRTC 的理想是两设备<strong>直连（P2P）</strong>，媒体包不经过任何服务器。但现实中设备大多在 NAT/防火墙后面，直连经常失败。这时 TURN 就充当<strong>中转站</strong>：媒体走 <code>A → TURN → B</code>，牺牲带宽与延迟，换取「一定能通」。</p>
+<h4 id="nat">为什么需要它：NAT 是头号障碍<a class="headerlink" href="#nat" title="Permanent link">&para;</a></h4>
+<ul>
+<li>内网设备没有公网地址，外面连不进来。</li>
+<li><strong>锥形 NAT</strong> 下，STUN 帮双方探到各自的公网映射地址，可以直接打洞（免费）。</li>
+<li><strong>对称 NAT / 严格企业防火墙</strong>下，打洞失败，只能找一台有公网地址的服务器帮忙转发——这就是 TURN。</li>
+</ul>
+<h4 id="ice-relay">ICE 的三类候选：relay 是兜底<a class="headerlink" href="#ice-relay" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>候选类型</th>
+<th>来源</th>
+<th>何时能用</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>host</code></td>
+<td>本机网卡地址</td>
+<td>同一局域网</td>
+<td>免费</td>
+</tr>
+<tr>
+<td><code>srflx</code>（STUN）</td>
+<td>通过 STUN 探测到的公网映射地址</td>
+<td>锥形 NAT，可打洞</td>
+<td>免费</td>
+</tr>
+<tr>
+<td><code>relay</code>（TURN）</td>
+<td>TURN 服务器分配的中继地址</td>
+<td>打洞失败时的<strong>唯一选择</strong></td>
+<td>媒体过服务器，费带宽、增延迟</td>
+</tr>
+</tbody>
+</table>
+<p>ICE 按优先级尝试：先 host/srflx，都失败才退化到 relay。所以 <strong>TURN 是「兜底」而非「默认」</strong>。</p>
+<h4 id="turn">为什么 TURN 需要「凭据」：防止被白嫖<a class="headerlink" href="#turn" title="Permanent link">&para;</a></h4>
+<p>TURN 是一台公网中继，谁都能连。若不加限制，任何人都能拿它转发流量（盗用带宽、甚至被当代理滥用）。因此业界用 <strong>TURN REST API</strong>（RFC 草案 <code>draft-uberti-behave-turn-rest</code>，即 <code>signaler.go</code> 注释里的那条链接）签发<strong>短时效凭据</strong>：客户端必须先从应用服务器换取用户名/密码，再拿它去 TURN 服务器开中继。</p>
+<h4 id="_2">本项目的完整闭环（签发 → 使用 → 校验）<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h4>
+<p><strong>第一步：服务端签发（<code>signaler.go</code> → <code>HandleTurnServerCredentials</code>）</strong></p>
+<ul>
+<li>拼用户名：<code>turnUsername = "时间戳:用户名"</code>（时间戳让凭据可校验时效、不可长期复用）。</li>
+<li>算密码：<code>password = base64(HMAC-SHA1(sharedKey, username))</code>，<code>sharedKey</code> 仅服务端知道。</li>
+<li>存起来：写进 <code>expresMap</code>（TTL 24h），供后续校验。</li>
+<li>返回：<code>{username, password, ttl, uris}</code>。</li>
+</ul>
+<p>本项目 <code>config.ini</code> 配置 <code>public_ip=47.251.242.213</code>、<code>port=19302</code>、<code>realm=flutter-webrtc</code>，所以下发的 <code>uris</code> 实际为 <code>turn:47.251.242.213:19302?transport=udp</code>。</p>
+<p><strong>第二步：客户端使用（<code>signaling.dart</code> 约 509–517 行）</strong></p>
+<p>拿到 JSON 后填进 <code>RTCPeerConnection</code> 的 <code>iceServers</code>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">_iceServers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="s1">'iceServers'</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">      </span><span class="s1">'urls'</span><span class="o">:</span><span class="w"> </span><span class="n">_turnCredential</span><span class="p">[</span><span class="s1">'uris'</span><span class="p">][</span><span class="m">0</span><span class="p">],</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">      </span><span class="s1">'username'</span><span class="o">:</span><span class="w"> </span><span class="n">_turnCredential</span><span class="p">[</span><span class="s1">'username'</span><span class="p">],</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">      </span><span class="s1">'credential'</span><span class="o">:</span><span class="w"> </span><span class="n">_turnCredential</span><span class="p">[</span><span class="s1">'password'</span><span class="p">]</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="p">]</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">};</span>
+</code></pre></div>
+<p>随后 <code>createPeerConnection</code> 用它建 PC；ICE 收集候选时就会向 TURN 服务器申请中继地址。</p>
+<p><strong>第三步：TURN 服务器校验（<code>turn.go</code> + <code>signaler.go</code>）</strong></p>
+<p>打洞失败时，客户端向 TURN 服务器（19302）发 <code>Allocate</code>，带上 username 和用 password 算出的 <code>MESSAGE-INTEGRITY</code>。pion 调 <code>HandleAuthenticate</code> → <code>signaler.authHandler()</code> 用 username 查 <code>expresMap</code> 拿回 password → <code>turn.GenerateAuthKey(username, realm, password)</code> 校验。<strong>校验通过才分配 relay 地址</strong>，媒体从此改走中继。</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant C as 客户端
+    participant S as signaler :8086
+    participant T as TURN 服务器 :19302
+
+    C-&gt;&gt;S: HTTPS GET /api/turn
+    S--&gt;&gt;C: {username, password, uris}
+    Note over S: 存 expresMap[username] = password
+    Note over C: 填入 iceServers
+    Note over C: 先试 host / srflx 打洞……
+    C-&gt;&gt;T: Allocate（带 username + MESSAGE-INTEGRITY）
+    T-&gt;&gt;S: authHandler(username) 查 expresMap
+    S--&gt;&gt;T: password
+    Note over T: GenerateAuthKey 校验通过
+    T--&gt;&gt;C: 分配 relay 地址
+    Note over C: 媒体改走 TURN 中继</code></pre>
+<h4 id="_3">几个容易踩的点<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong><code>/api/turn</code> 只发钥匙，不转发媒体</strong>；真正转发媒体的是 <code>config.ini</code> 里 <code>port=19302</code> 那个 UDP 监听，两者是不同端口。</li>
+<li><strong>本项目实际只用 TURN 作为 ICE server</strong>：<code>signaling.dart</code> 约 509 行是<strong>重新赋值</strong> <code>_iceServers</code>（不是追加），取到凭据后最初那个 <code>stun:stun.l.google.com</code> 被覆盖。这没问题——pion 的 TURN 服务器同时应答 STUN Binding 请求，<code>srflx</code> 候选仍能从它这里拿到。</li>
+<li><strong>凭据有时效</strong>：<code>ttl=86400</code>（24 小时），<code>expresMap</code> 到期即失效，所以不能把用户名密码硬编码进客户端。</li>
+<li><strong>代价</strong>：一旦走 relay，所有音视频包都过服务器，带宽与延迟显著上升。</li>
+</ul>
+<blockquote>
+<p>一句话总结：<strong>TURN = 打洞失败时的媒体中转站；<code>/api/turn</code> 发一把 24 小时有效的临时钥匙，客户端拿它去 TURN 服务器（19302）开一条中继通道，让音视频绕道传输。</strong></p>
+</blockquote>
+<hr />
+<h2 id="41-42-4446">章节内容（4.1 / 4.2 / 4.4–4.6 待填充）<a class="headerlink" href="#41-42-4446" title="Permanent link">&para;</a></h2>
+<h3 id="41-webrtc">4.1 为什么 WebRTC 需要"外部信令"（先立观念）<a class="headerlink" href="#41-webrtc" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] 规范把"如何找到对端"留给开发者 → 各家自选 WebSocket/HTTP/邮件</li>
+<li>[ ] 信令只该传三类消息：会话控制(呼叫/挂断) + 媒体协商(SDP) + 网络协商(ICE 候选)</li>
+<li>[ ] 对照本项目 9 类消息：<code>new/peers/offer/answer/candidate/bye/leave/keepalive/error</code></li>
+</ul>
+<h3 id="42-offeranswer-rfc-3264">4.2 Offer/Answer 模型（RFC 3264）<a class="headerlink" href="#42-offeranswer-rfc-3264" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] JSEP：JS 会话建立协议（为什么 SDP 协商放浏览器里做）</li>
+<li>[ ] 主叫生成 offer（含媒体方向），被叫回 answer</li>
+<li>[ ] "会话内改媒体"= renegotiation（本项目对讲加麦克风即触发，复用 PC）</li>
+<li>[ ] 竞赛条件 glare：双方同时发 offer 怎么办（TODO：查 RFC 处理）</li>
+</ul>
+<h3 id="43-ice">4.3 ICE 与候选交换（连接建立的核心难点）<a class="headerlink" href="#43-ice" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>状态：🟢 已填充
+对应代码：客户端 <code>rephone-security/lib/services/signaling.dart</code>（<code>_iceServers</code> 117–129 / 509–517 行、<code>createPeerConnection</code> 641–644 行、<code>onIceCandidate</code> 717–737 行、<code>remoteCandidates</code> 缓冲 393–398 / 414–419 行）；服务端 <code>flutter-webrtc-server/pkg/turn/turn.go</code>、<code>pkg/signaler/signaler.go</code>、<code>configs/config.ini</code> <code>[turn]</code></p>
+</blockquote>
+<p><strong>一句话：候选地址不是配置里「给」的，而是 ICE agent 现场「收集」出来的——host 来自本机网卡，srflx 来自 STUN 探测，relay 来自 TURN 分配。</strong></p>
+<h4 id="431-iceservers">4.3.1 先破除误解：<code>iceServers</code> 是「服务器清单」，不是「候选清单」<a class="headerlink" href="#431-iceservers" title="Permanent link">&para;</a></h4>
+<p>很多人第一次看这段代码，会以为 <code>_iceServers</code> 里装的就是地址候选：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">RTCPeerConnection</span><span class="w"> </span><span class="n">pc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kd">await</span><span class="w"> </span><span class="n">createPeerConnection</span><span class="p">({</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="p">...</span><span class="n">_iceServers</span><span class="p">,</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="p">...{</span><span class="s1">'sdpSemantics'</span><span class="o">:</span><span class="w"> </span><span class="n">sdpSemantics</span><span class="p">}</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="p">},</span><span class="w"> </span><span class="n">_config</span><span class="p">);</span>
+</code></pre></div>
+<p>其实它是 <code>RTCConfiguration</code>，只告诉 PC「打洞/中继可以找哪几台服务器帮忙」。真正的候选地址由 PC 内部的 ICE agent 在运行中产生。两者关系：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>iceServers</code>（配置）</th>
+<th>ICE 候选（运行时产物）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>内容</td>
+<td>服务器 URI + 凭据</td>
+<td><code>host</code> / <code>srflx</code> / <code>relay</code> 三类地址</td>
+</tr>
+<tr>
+<td>谁给的</td>
+<td>开发者（本项目来自 <code>/api/turn</code>）</td>
+<td>ICE agent 收集产生</td>
+</tr>
+<tr>
+<td>数量</td>
+<td>通常 1–3 条</td>
+<td>可能十几条（每种网卡 × 每种类型各若干）</td>
+</tr>
+</tbody>
+</table>
+<h4 id="432">4.3.2 候选三兄弟的产生条件<a class="headerlink" href="#432" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>候选类型</th>
+<th>从哪来</th>
+<th>依赖 <code>iceServers</code></th>
+<th>需要鉴权</th>
+<th>优先级</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>host</code></td>
+<td><strong>本机网卡枚举</strong>（Wi-Fi / 蜂窝 / 以太网 IP + 随机端口）</td>
+<td>❌ 纯本地</td>
+<td>否</td>
+<td>最高</td>
+</tr>
+<tr>
+<td><code>srflx</code></td>
+<td>向 STUN 服务器发 Binding 请求，读回公网映射地址</td>
+<td>✅ 需 <code>stun:</code>（或 TURN，见下）</td>
+<td>否</td>
+<td>中</td>
+</tr>
+<tr>
+<td><code>relay</code></td>
+<td>向 TURN 服务器发 Allocate，它分配一个中继地址</td>
+<td>✅ 只有 <code>turn:</code> 才有</td>
+<td>✅ 是</td>
+<td>最低</td>
+</tr>
+</tbody>
+</table>
+<p>候选字符串长这样（第 3 个数字是优先级，<code>typ</code> 是类型）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>candidate:1 1 udp 2130706431 192.168.1.10   54321 typ host
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>candidate:2 1 udp 1694498815 203.0.113.7    54322 typ srflx raddr 192.168.1.10 rport 54321
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>candidate:3 1 udp 16777215   47.251.242.213 49152 typ relay raddr 0.0.0.0      rport 0
+</code></pre></div>
+<blockquote>
+<p>⚠️ 注意区分：<code>srflx</code> 里的地址是<strong>客户端自己的公网映射地址</strong>（示例中的 <code>203.0.113.7</code>），<strong>不是</strong>服务器地址；<code>relay</code> 里的地址才是<strong>服务器分配的</strong>（<code>47.251.242.213:49152</code>）。</p>
+</blockquote>
+<p><strong>为什么本项目只配了 TURN，三种候选却依然齐全？</strong> 两个原因：</p>
+<ol>
+<li><code>host</code> 候选跟 <code>iceServers</code> 无关，枚举本机网卡就有；</li>
+<li><strong>TURN 协议本身就是 STUN 的扩展，TURN 服务器必须同时应答 STUN Binding 请求</strong>——所以只配 <code>turn:</code> 等于同时配了 STUN + TURN，<code>srflx</code> 照样能从它这里拿到，只是额外多出了 <code>relay</code>。</li>
+</ol>
+<blockquote>
+<p>顺带一个隐藏行为：<code>connect()</code> 里取 TURN 凭据的 <code>catch</code> 是<strong>空的</strong>（<code>signaling.dart</code> 518 行）。若 <code>/api/turn</code> 请求失败，<code>_iceServers</code> 不会被覆盖，会保持初始的 <code>stun:stun.l.google.com:19302</code>——即「正常走 TURN 兜底，取凭据失败则退回纯 STUN」的隐式降级。</p>
+</blockquote>
+<h4 id="433-turn4725124221319302">4.3.3 <code>turn:47.251.242.213:19302</code> 到底是谁在和谁通信？<a class="headerlink" href="#433-turn4725124221319302" title="Permanent link">&para;</a></h4>
+<p>这条 URI 描述的是「<strong>客户端 ↔ TURN/STUN 服务器</strong>」的通信，三个关键事实：</p>
+<ol>
+<li><strong>发起方不是 Dart 代码</strong>，而是 flutter-webrtc 的原生层（libwebrtc 的 ICE agent / <code>BasicPortAllocator</code>）。Dart 侧只做了「把 <code>iceServers</code> 传给 <code>createPeerConnection</code>」这一件事，之后完全不参与。</li>
+<li><strong>传输层是裸 UDP</strong>，不是 WebSocket/HTTPS——URI 里的 <code>?transport=udp</code> 就是这个意思。它<strong>不走 8086</strong>，也<strong>不经过 <code>/ws</code> 或 <code>/api/turn</code></strong>。</li>
+<li><strong>对端是 TURN 服务器</strong>，与 8086 的 HTTPS 服务是<strong>两个独立监听</strong>：同一台机器，但一个是 <code>http.ListenAndServeTLS</code>（8086/TCP），一个是 <code>net.ListenPacket("udp4", "0.0.0.0:19302")</code>（19302/UDP，见 <code>turn.go</code> 47 行）。</li>
+</ol>
+<p>三条通道的分工：</p>
+<table>
+<thead>
+<tr>
+<th>通道</th>
+<th>协议 / 端口</th>
+<th>谁在用</th>
+<th>传什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/api/turn</code></td>
+<td>HTTPS 8086/TCP</td>
+<td>Dart（<code>turn.dart</code>）</td>
+<td>取 TURN 用户名/密码（钥匙）</td>
+</tr>
+<tr>
+<td><code>/ws</code></td>
+<td>WSS 8086/TCP</td>
+<td>Dart（<code>signaling.dart</code>）</td>
+<td>SDP、ICE 候选等信令（小纸条）</td>
+</tr>
+<tr>
+<td><code>turn:...:19302</code></td>
+<td>STUN/TURN over UDP 19302</td>
+<td><strong>原生层 libwebrtc</strong></td>
+<td>探测公网地址、申请中继、中继媒体</td>
+</tr>
+</tbody>
+</table>
+<h4 id="434-stun">4.3.4 STUN 探测：怎么问出「我的公网地址」<a class="headerlink" href="#434-stun" title="Permanent link">&para;</a></h4>
+<p>STUN 报文（RFC 5389）是二进制格式，固定 20 字节头：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a> 0                   1                   2                   3
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>|0 0|     Message Type          |        Message Length         |
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>|                    Magic Cookie (0x2112A442)                  |
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>|                     Transaction ID (96 bits)                  |
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</code></pre></div>
+<ul>
+<li><code>Message Type</code>：Binding Request = <code>0x0001</code>，Binding Success Response = <code>0x0101</code>。</li>
+<li><code>Magic Cookie</code>：固定 <code>0x2112A442</code>，用来识别「这是 STUN 报文」。</li>
+<li><code>Transaction ID</code>：96 bit 随机数，用于把请求和响应配对。</li>
+</ul>
+<p>一次 srflx 探测只有两步：</p>
+<ol>
+<li>客户端从某个本地 UDP 端口（比如 <code>54321</code>）向 <code>47.251.242.213:19302</code> 发一个 <strong>Binding Request</strong>。</li>
+<li>服务器不解析内容，只把「它看到的来源地址」（即 NAT 之后的公网映射地址）写进 <strong><code>XOR-MAPPED-ADDRESS</code></strong> 属性，回一个 Binding Success Response。</li>
+<li>客户端解析出来 → 生成一条 <code>typ srflx</code> 候选。</li>
+</ol>
+<blockquote>
+<p><strong>为什么地址要 XOR 而不直接明文写？</strong> 老式 NAT 的 ALG 会「自作聪明」改写载荷里的 IP 字段，导致地址被改坏。把地址与 Magic Cookie 异或后再塞进属性，ALG 认不出来就不会动它，从而保证拿到的映射地址是真实的。</p>
+</blockquote>
+<h4 id="435-turn-allocate">4.3.5 TURN Allocate：怎么申请一个中继地址（含鉴权）<a class="headerlink" href="#435-turn-allocate" title="Permanent link">&para;</a></h4>
+<p><code>relay</code> 候选比 <code>srflx</code> 多一步「申请 + 鉴权」：</p>
+<ol>
+<li>客户端向 19302 发 <strong>Allocate Request</strong>（<code>Message Type = 0x0003</code>），带 <code>REQUESTED-TRANSPORT = 17</code>（UDP 的 IANA 协议号）。</li>
+<li>服务器发现没带鉴权信息 → 回 <strong><code>401 Unauthorized</code></strong>，并附上 <code>REALM="flutter-webrtc"</code> 和一次性的 <code>NONCE</code>。</li>
+<li>客户端用 <code>/api/turn</code> 拿到的 username/password 计算：</li>
+<li><code>key = MD5(username ":" realm ":" password)</code></li>
+<li><code>MESSAGE-INTEGRITY = HMAC-SHA1(key, 报文内容)</code>
+   然后带 <code>USERNAME / REALM / NONCE / MESSAGE-INTEGRITY</code> <strong>重发</strong> Allocate。</li>
+<li>服务器校验：pion 调 <code>HandleAuthenticate</code>（<code>turn.go</code> 73 行）→ <code>signaler.authHandler()</code>（<code>signaler.go</code> 128 行）用 username 查 <code>expresMap</code> 取回 password → <code>turn.GenerateAuthKey(username, realm, password)</code> 算出同一个 key → 校验 HMAC。<strong>校验通过才分配。</strong></li>
+<li>服务器回 <strong>Allocate Success Response</strong>（<code>0x0103</code>），带：</li>
+<li><strong><code>XOR-RELAYED-ADDRESS</code></strong>：分配给你的中继地址（公网 IP + <strong>一个随机端口</strong>）</li>
+<li><code>XOR-MAPPED-ADDRESS</code>：顺带告诉你公网映射地址（所以一次 Allocate 也顺便给了 srflx 信息）</li>
+<li><code>LIFETIME</code>：中继有效期（默认 600 秒），到期前客户端要 Refresh</li>
+<li>客户端生成一条 <code>typ relay</code> 候选。</li>
+</ol>
+<blockquote>
+<p><strong>关键细节：19302 只是控制通道。</strong> <code>turn.go</code> 用 <code>RelayAddressGeneratorStatic{RelayAddress: public_ip, Address: "0.0.0.0"}</code>——中继用的 UDP socket 绑在 <code>0.0.0.0</code> 的<strong>随机端口</strong>上，只把 <code>public_ip</code> 宣告给客户端。所以真正的媒体中继走的是另一个端口，不是 19302。</p>
+</blockquote>
+<p><code>relay</code> 候选要真正转发媒体，还差两步（都在 TURN 协议内，对开发者透明）：</p>
+<ul>
+<li><code>CreatePermission</code>：授权某个对端 IP 的数据可以进来（防滥用）。</li>
+<li><code>ChannelBind</code>（或 <code>Send/Data Indication</code>）：建立通道，媒体以 <code>ChannelData</code> 报文高效转发。</li>
+</ul>
+<h4 id="436-ice">4.3.6 完整 ICE 流程：收集 → 交换 → 检查 → 选路<a class="headerlink" href="#436-ice" title="Permanent link">&para;</a></h4>
+<pre class="mermaid"><code>sequenceDiagram
+    participant A as 客户端 A
+    participant S as signaler :8086
+    participant T as TURN/STUN :19302 (UDP)
+    participant B as 客户端 B
+
+    Note over A: createPeerConnection(iceServers)
+    A-&gt;&gt;A: 枚举本机网卡 → host 候选
+    A-&gt;&gt;T: STUN Binding Request
+    T--&gt;&gt;A: XOR-MAPPED-ADDRESS → srflx 候选
+    A-&gt;&gt;T: TURN Allocate（401 → 带凭据重试）
+    T--&gt;&gt;A: XOR-RELAYED-ADDRESS → relay 候选
+    A-&gt;&gt;S: candidate（每收集到一个就 trickle）
+    S-&gt;&gt;B: candidate
+    B-&gt;&gt;S: candidate（B 自己的候选）
+    S-&gt;&gt;A: candidate
+    Note over A,B: 在每对候选上互发 STUN Binding（连通性检查）
+    Note over A,B: 收到响应 = 该候选对连通
+    Note over A,B: 选优先级最高且连通的路径，媒体走它</code></pre>
+<p>四步与代码的对应关系：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>做什么</th>
+<th>本项目代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>收集</td>
+<td>产生 host/srflx/relay 候选</td>
+<td>原生层自动完成</td>
+</tr>
+<tr>
+<td>交换</td>
+<td>逐个经信令发给对端</td>
+<td><code>onIceCandidate</code> → <code>_send('candidate', ...)</code></td>
+</tr>
+<tr>
+<td>检查</td>
+<td>候选对上互发 STUN Binding</td>
+<td>原生层自动完成</td>
+</tr>
+<tr>
+<td>选路</td>
+<td>选优先级最高且连通的候选对</td>
+<td>原生层自动完成</td>
+</tr>
+</tbody>
+</table>
+<h4 id="437-trickle-ice">4.3.7 trickle ICE 与候选乱序<a class="headerlink" href="#437-trickle-ice" title="Permanent link">&para;</a></h4>
+<p>传统 ICE 要等候选<strong>全部收集完</strong>（可能好几秒）才把完整 SDP 发出去，建连很慢。<strong>trickle ICE</strong> 改成「每收集到一个就立刻发」，不用等——本项目的 <code>onIceCandidate</code> 就是这么做的。</p>
+<p>代价是<strong>乱序</strong>：候选可能比 offer/answer 先到，此时对端可能还没有 <code>pc</code>、或还没 <code>setRemoteDescription</code>，直接 <code>addCandidate</code> 会失败。本项目用 <code>Session.remoteCandidates</code> 做缓冲：</p>
+<ul>
+<li>收到候选时若 <code>pc == null</code>（或还没设远端描述）→ 先存进 <code>remoteCandidates</code>；</li>
+<li><code>setRemoteDescription</code> 完成后，把缓冲的候选逐个 <code>addCandidate</code> 再清空（<code>signaling.dart</code> 393–398、414–419 行）。</li>
+</ul>
+<h4 id="438-onicecandidate-sleep-1">4.3.8 为什么 <code>onIceCandidate</code> 发送前 sleep 1 秒<a class="headerlink" href="#438-onicecandidate-sleep-1" title="Permanent link">&para;</a></h4>
+<p>代码注释自己给了答案：</p>
+<blockquote>
+<p>This delay is needed to allow enough time to try an ICE candidate before skipping to the next one. 1 second is just an heuristic value and should be thoroughly tested in your own environment.</p>
+</blockquote>
+<p>可以理解为一种<strong>粗暴的候选发送节流</strong>：把「瞬间 trickle」变成「每 1 秒放一个」。</p>
+<ul>
+<li>好处：避免一次性把十几条候选砸给对端，造成信令拥塞或乱序加剧。</li>
+<li>坏处：候选多时建连明显变慢（N 条 ≈ N 秒）；注释本身也承认这只是 heuristic，需要按实际网络调优。</li>
+</ul>
+<blockquote>
+<p>一句话总结：<strong>候选是 ICE agent「收集」出来的（host 来自本机网卡、srflx 来自 STUN 探测、relay 来自 TURN 分配）；<code>turn:...:19302</code> 是原生层 libwebrtc 用裸 UDP 直连 TURN/STUN 服务器的通道，和 8086 上的 <code>/ws</code>、<code>/api/turn</code> 完全是两回事。</strong></p>
+</blockquote>
+<h4 id="439">4.3.9 候选报文的格式与转发：发 → 路由 → 收 三跳拆解<a class="headerlink" href="#439" title="Permanent link">&para;</a></h4>
+<blockquote>
+<p>对应代码：客户端 <code>signaling.dart</code> <code>onIceCandidate</code> 717–737 行、<code>onMessage</code> 的 <code>case 'candidate'</code> 438–458 行；服务端 <code>signaler.go</code> <code>case Candidate</code> 260–283 行</p>
+</blockquote>
+<p>本节回答三个具体问题：<strong>候选报文长什么样？服务端怎么解析它？收到后又怎么还原成候选？</strong></p>
+<h5 id="_4">发的三个字段：候选本体 + 归属信息<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h5>
+<p><code>onIceCandidate</code> 把候选拆成三个字段打包发出：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="s1">'candidate'</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="s1">'sdpMLineIndex'</span><span class="o">:</span><span class="w"> </span><span class="n">candidate</span><span class="p">.</span><span class="n">sdpMLineIndex</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="s1">'sdpMid'</span><span class="o">:</span><span class="w"> </span><span class="n">candidate</span><span class="p">.</span><span class="n">sdpMid</span><span class="p">,</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="s1">'candidate'</span><span class="o">:</span><span class="w"> </span><span class="n">candidate</span><span class="p">.</span><span class="n">candidate</span><span class="p">,</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="p">},</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>candidate</code></td>
+<td>String</td>
+<td>候选<strong>本体</strong>，就是那一行文本（格式见下）</td>
+</tr>
+<tr>
+<td><code>sdpMid</code></td>
+<td>String?</td>
+<td>候选属于 SDP 里哪条媒体流（对应 <code>a=mid:</code> 的值，如 <code>"0"</code> / <code>"video"</code>）</td>
+</tr>
+<tr>
+<td><code>sdpMLineIndex</code></td>
+<td>int?</td>
+<td>同上，只是改用 <code>m=</code> 段的<strong>下标</strong>表示（第 0 个 / 第 1 个）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>为什么必须拆成三个？</strong> 因为候选本体那一行<strong>不包含「属于哪条流」的信息</strong>。一个 PC 可以有多个 <code>m=</code> 段（audio / video / data），对方必须知道把它挂到哪条流上，否则会把 video 的候选加到 audio 上。<code>sdpMid</code> 与 <code>sdpMLineIndex</code> 是等价的两种索引方式。</p>
+<blockquote>
+<p>注意：这一跳<strong>并没有解析</strong>——<code>candidate.candidate</code> 已经是原生层给出的完整字符串，Dart 只是「拆包」塞进 JSON。真正的解析在 libwebrtc 原生层。</p>
+</blockquote>
+<h5 id="candidate-rfc-5245-151">candidate 字符串的格式（RFC 5245 §15.1）<a class="headerlink" href="#candidate-rfc-5245-151" title="Permanent link">&para;</a></h5>
+<p>空格分隔，<strong>前 8 个字段必填，后 5 个可选</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>candidate:&lt;foundation&gt; &lt;component-id&gt; &lt;transport&gt; &lt;priority&gt; &lt;conn-addr&gt; &lt;port&gt; typ &lt;cand-type&gt; [raddr &lt;rel-addr&gt;] [rport &lt;rel-port&gt;] [extensions]
+</code></pre></div>
+<p>三类候选各举一例：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>candidate:1 1 udp 2130706431 192.168.1.10   54321 typ host
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>candidate:2 1 udp 1694498815 203.0.113.7    54322 typ srflx raddr 192.168.1.10 rport 54321
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>candidate:3 1 udp 16777215   47.251.242.213 49152 typ relay raddr 0.0.0.0 rport 0 generation 0 ufrag Xy7z network-cost 999
+</code></pre></div>
+<p>逐字段含义：</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>字段</th>
+<th>示例</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>foundation</td>
+<td><code>1</code></td>
+<td>同源候选共享同一个值；用于去重与剪枝（同 foundation 不必重复做连通性检查）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>component-id</td>
+<td><code>1</code></td>
+<td><code>1</code>=RTP，<code>2</code>=RTCP（unified-plan 下基本恒为 1）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>transport</td>
+<td><code>udp</code></td>
+<td><code>udp</code> 或 <code>tcp</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>priority</td>
+<td><code>2130706431</code></td>
+<td>优先级，<strong>越大越优先</strong>；由类型算出（见下）</td>
+</tr>
+<tr>
+<td>5</td>
+<td>conn-addr</td>
+<td><code>192.168.1.10</code></td>
+<td>候选 IP（本机 IP / 公网映射 IP / 中继 IP）</td>
+</tr>
+<tr>
+<td>6</td>
+<td>port</td>
+<td><code>54321</code></td>
+<td>候选端口</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>typ</code></td>
+<td><code>typ</code></td>
+<td>固定字面量分隔符</td>
+</tr>
+<tr>
+<td>8</td>
+<td>cand-type</td>
+<td><code>host</code></td>
+<td><code>host</code> / <code>srflx</code> / <code>prflx</code> / <code>relay</code></td>
+</tr>
+<tr>
+<td>9–12</td>
+<td><code>raddr</code> + rel-addr + <code>rport</code> + rel-port</td>
+<td><code>raddr 192.168.1.10 rport 54321</code></td>
+<td>仅 srflx / prflx / relay 有：该候选的「基地址」（relay 场景常为 <code>0.0.0.0</code> / <code>0</code>）</td>
+</tr>
+<tr>
+<td>13</td>
+<td>extensions</td>
+<td><code>generation 0</code></td>
+<td>扩展属性；Chrome 系会带 <code>generation</code> / <code>ufrag</code> / <code>network-cost</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>priority 的计算公式</strong>（RFC 8445 §5.1.2.1）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>priority = 2^24 × type_pref + 2^8 × local_pref + (256 - component_id)
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>type_pref: host=126, prflx=110, srflx=100, relay=0
+</code></pre></div>
+<p>所以 host 的 priority 恒最大（≈2.13×10⁹），relay 恒最小——「relay 只做兜底」在候选字符串里就体现为这个数字。</p>
+<h5 id="to">服务端：几乎不解析，只认 <code>to</code><a class="headerlink" href="#to" title="Permanent link">&para;</a></h5>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kd">var</span><span class="w"> </span><span class="nx">negotiation</span><span class="w"> </span><span class="nx">Negotiation</span><span class="w">          </span><span class="c1">// 只有 From / To / SessionID 三个字段</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">json</span><span class="p">.</span><span class="nx">Unmarshal</span><span class="p">(</span><span class="nx">body</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">negotiation</span><span class="p">)</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="nx">to</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">negotiation</span><span class="p">.</span><span class="nx">To</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="nx">peer</span><span class="p">,</span><span class="w"> </span><span class="nx">ok</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">peers</span><span class="p">[</span><span class="nx">to</span><span class="p">]</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="k">if</span><span class="w"> </span><span class="o">!</span><span class="nx">ok</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* 回 error：Peer not found */</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="nx">s</span><span class="p">.</span><span class="nx">Send</span><span class="p">(</span><span class="nx">peer</span><span class="p">.</span><span class="nx">conn</span><span class="p">,</span><span class="w"> </span><span class="nx">request</span><span class="p">)</span><span class="w">           </span><span class="c1">// request.Data 是原始 JSON，原样透传</span>
+</code></pre></div>
+<p>两个关键点：</p>
+<ol>
+<li><code>Negotiation</code> 结构体只有 <code>From</code> / <code>To</code> / <code>SessionID</code>，<strong>根本没有 <code>candidate</code> 字段</strong>——服务端不关心候选内容；</li>
+<li><code>request.Data</code> 是 <code>*json.RawMessage</code>（原始 JSON），所以 <code>candidate</code> 部分被<strong>原封不动</strong>转发。</li>
+</ol>
+<p>此外 <code>Candidate</code> 与 <code>Offer</code> / <code>Answer</code> 走的是<strong>同一个 case</strong>（<code>case Offer: fallthrough case Answer: fallthrough case Candidate:</code>），三者共用「取出 <code>to</code> → 查 <code>peers</code> → 原样转发」这一套逻辑。</p>
+<p>这就是<strong>无状态中继</strong>：服务端只做「地址簿 + 转发」，不理解也不校验 SDP/候选语义。好处是简单、易横向扩展；代价是无法做候选过滤、改写或审计。</p>
+<blockquote>
+<p>想验证：<code>signaler.go</code> 的 <code>logger.Infof("On message %v", string(message))</code> 会把原始报文打进日志，能看到完整 JSON。</p>
+</blockquote>
+<h5 id="_5">收端：这里才真正「解析 + 重组」<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h5>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kd">var</span><span class="w"> </span><span class="n">candidateMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">data</span><span class="p">[</span><span class="s1">'candidate'</span><span class="p">];</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">RTCIceCandidate</span><span class="w"> </span><span class="n">candidate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">RTCIceCandidate</span><span class="p">(</span><span class="n">candidateMap</span><span class="p">[</span><span class="s1">'candidate'</span><span class="p">],</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="n">candidateMap</span><span class="p">[</span><span class="s1">'sdpMid'</span><span class="p">],</span><span class="w"> </span><span class="n">candidateMap</span><span class="p">[</span><span class="s1">'sdpMLineIndex'</span><span class="p">]);</span>
+</code></pre></div>
+<p>把 3 个字段重新拼成 <code>RTCIceCandidate(candidate, sdpMid, sdpMLineIndex)</code>（顺序刚好是构造器形参顺序），再交给 <code>pc.addCandidate()</code>。之后是乱序缓冲的三个分支：</p>
+<table>
+<thead>
+<tr>
+<th>情况</th>
+<th>处理</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session != null &amp;&amp; session.pc != null</code></td>
+<td>直接 <code>addCandidate</code></td>
+<td>正常路径，PC 已建好</td>
+</tr>
+<tr>
+<td><code>session != null &amp;&amp; session.pc == null</code></td>
+<td>存入 <code>remoteCandidates</code></td>
+<td>PC 还没创建</td>
+</tr>
+<tr>
+<td><code>session == null</code></td>
+<td>新建 Session 并把候选存进去</td>
+<td><strong>候选比 offer 先到</strong>（极端乱序）</td>
+</tr>
+</tbody>
+</table>
+<p>等 <code>setRemoteDescription</code> 完成后统一 flush（<code>signaling.dart</code> 393–398、414–419 行，详见 4.3.7）。</p>
+<h5 id="_6">这一跳在整体流程中的位置<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h5>
+<p><strong>一句话：SDP 决定「说什么话」，candidate 决定「走哪条路」——没有候选交换，SDP 协商得再好也连不通。</strong></p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>消息</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>offer</code> / <code>answer</code>（SDP）</td>
+<td>协商编解码/媒体方向，并交换 ICE 凭据 <code>a=ice-ufrag</code> / <code>a=ice-pwd</code> / <code>a=fingerprint</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong><code>candidate</code></strong></td>
+<td>双方互告「我这边可能能通的地址」——host / srflx / relay</td>
+</tr>
+<tr>
+<td>3</td>
+<td>（原生层）连通性检查</td>
+<td>在「A 的候选 × B 的候选」组成的候选对上互发 STUN Binding</td>
+</tr>
+<tr>
+<td>4</td>
+<td>（原生层）选路</td>
+<td>选「优先级最高且连通」的那一对，媒体走它</td>
+</tr>
+</tbody>
+</table>
+<p>四个关键点：</p>
+<ul>
+<li><strong>候选是双向的</strong>：A 发给 B、B 也发给 A；只有双方候选<strong>两两配对</strong>才可能连通。单边全是内网 host 就配不出路径。</li>
+<li><strong><code>ice-ufrag</code> / <code>ice-pwd</code> 是第 3 步的凭据</strong>，它们在 <strong>SDP 里</strong>交换，不在 candidate 消息里。连通性检查的 STUN Binding 用 <code>USERNAME = 本地ufrag:远端ufrag</code> + <code>MESSAGE-INTEGRITY = HMAC-SHA1(ice-pwd, 报文)</code> 互相认证，防止伪造候选。<strong>这正是收端必须缓冲乱序候选的根本原因</strong>：凭据没到（SDP 还没处理），候选到了也用不了。</li>
+<li><strong><code>sdpMid</code> / <code>sdpMLineIndex</code> 决定候选挂到哪条流</strong>，多 <code>m=</code> 段时挂错就整条流连不上。</li>
+<li><strong>选中的类型决定成本</strong>：host / srflx = 直连（免费）；relay = 走 19302 服务器中继（费带宽、增延迟）。</li>
+</ul>
+<blockquote>
+<p>一句话总结：<strong><code>onIceCandidate</code> 把原生层的候选「拆成 3 个字段」；服务端只解析 <code>to</code> 再原样转发（无状态中继）；接收端把 3 个字段「重组」成 <code>RTCIceCandidate</code> 并用缓冲解决乱序。candidate 消息的作用是把双方的可用路径互通有无，让原生层的连通性检查有的放矢——这是 P2P 能打通的最后一块拼图。</strong></p>
+</blockquote>
+<h3 id="44-dtls-srtp03">4.4 DTLS 与 SRTP（先占位，03 章之外的安全面）<a class="headerlink" href="#44-dtls-srtp03" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] 为什么必须先握手再传媒体（防中间人/窃听）</li>
+<li>[ ] 证书指纹如何在 SDP 中交换（<code>a=fingerprint</code>）</li>
+</ul>
+<h3 id="45">4.5 本项目信令转发实现剖析（服务端视角）<a class="headerlink" href="#45" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] <code>/ws</code> 连接与消息循环（<code>pkg/websocket/server.go</code> → <code>signaler.go</code>）</li>
+<li>[ ] 路由只认 <code>to/from/session_id</code>：<code>Offer/Answer/Candidate</code> 原样转发（Candidate 的解析/透传已见 4.3.9，本节补 Offer/Answer 与整体设计）</li>
+<li>[ ] <code>bye</code> 按 <code>session_id.split('-')</code> 双向通知；<code>new</code>/断线 → 全量 <code>peers</code> 广播</li>
+<li>[ ] 无状态中继设计 vs 房间式服务器（各自的取舍）</li>
+</ul>
+<h3 id="46">4.6 一次完整呼叫的报文时间线（验证所学）<a class="headerlink" href="#46" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] 用日志/抓包录一段真实报文序列，对照本文各节贴成笔记</li>
+</ul>
+<h2 id="_7">待填充清单<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[x] 4.0 HTTPS vs WSS 区别、本项目 <code>/ws</code> 与 <code>/api/turn</code> 分工</li>
+<li>[x] 4.0.3 TURN 到底干什么（打洞失败时的中继兜底、凭据签发/使用/校验闭环）</li>
+<li>[x] 4.3 ICE 与候选交换（候选三兄弟来源、STUN/TURN 探测报文、trickle 与乱序缓冲、sleep 1s 原因、candidate 报文格式与三跳转发）</li>
+<li>[ ] 4.1 信令定位与消息分类</li>
+<li>[ ] 4.2 Offer/Answer/JSEP/glare</li>
+<li>[ ] 4.4 DTLS/SRTP 简介</li>
+<li>[ ] 4.5 服务端实现剖析</li>
+<li>[ ] 4.6 真实报文时间线</li>
+</ul>
+<h2 id="_8">对应本项目（索引）<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<ul>
+<li>完整时序文档：<code>docs/监控端WebRTC信令连通逻辑.md</code></li>
+<li>客户端消息处理：<code>rephone-security/lib/services/signaling.dart</code> → <code>onMessage()</code></li>
+<li>客户端候选回调：<code>rephone-security/lib/services/signaling.dart</code> → <code>onIceCandidate()</code>（拆包发送，见 4.3.9）</li>
+<li>服务端路由/转发：<code>flutter-webrtc-server/pkg/signaler/signaler.go</code> → <code>HandleNewWebSocket()</code></li>
+<li>信令端点（WSS）：<code>wss://rephone.top:8086/ws</code>；服务端注册见 <code>pkg/websocket/server.go</code> → <code>Bind()</code>（<code>WebSocketPath: "/ws"</code>）</li>
+<li>TURN 凭据端点（HTTPS）：<code>https://rephone.top:8086/api/turn</code>；签发见 <code>pkg/signaler/signaler.go</code> → <code>HandleTurnServerCredentials()</code></li>
+<li>客户端取 TURN 凭据：<code>rephone-security/lib/services/turn.dart</code> → <code>getTurnCredential()</code>（结果填入 <code>iceServers</code>，见 <code>signaling.dart</code> 约 509–517 行）</li>
+<li>TURN 中继服务器实现：<code>flutter-webrtc-server/pkg/turn/turn.go</code> → <code>NewTurnServer()</code> / <code>HandleAuthenticate()</code>；监听配置见 <code>configs/config.ini</code> <code>[turn]</code>（<code>public_ip=47.251.242.213</code>、<code>port=19302</code>、<code>realm=flutter-webrtc</code>）</li>
+<li>TURN 凭据校验回调：<code>pkg/signaler/signaler.go</code> → <code>authHandler()</code>（用 username 查 <code>expresMap</code> 取回 password）</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 WebRTC 伴随手册
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.top", "navigation.tracking", "content.code.copy", "content.code.annotate", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>
