@@ -16,6 +16,9 @@
 | **facingMode** | 指定前摄(`user`)还是后摄(`environment`) | 本项目切换摄像头时翻转该值并重启采集 | `switchCamera()` |
 | **编解码器(Codec)** | 把原始画面/声音压缩成比特流（编码）和解开（解码）的算法 | 视频常见 H.264/VP8/VP9/AV1；音频常见 Opus/G.711 | 由 SDP 协商自动选择，代码基本不感知 |
 | **分辨率/帧率/码率** | 画面大小 / 每秒帧数 / 每秒比特量 | 码率=分辨率×帧率×压缩率，是"画质-带宽"权衡 | 约束写在 `createStream()` mandatory 中 |
+| **外部纹理(External Texture)** | 由 native 生产、Flutter 只按 `textureId` 合成的 GPU 纹理 | Dart 层拿不到像素、只持有 id；`Texture` widget 与 `RTCVideoView` 用的都是它 | `08` 章 8.2、8.10 |
+| **离屏快照(toImage)** | 把某一层重新光栅化成一张 `ui.Image` | 走引擎的"离屏路径"，与上屏路径的解析条件不同；外部纹理在离屏下可能拿不到内容 | `08` 章 8.10.2 |
+| **渲染后端(Impeller/Skia)** | Flutter 的两套渲染后端，Impeller 是新一代（Metal/Vulkan/GLES） | 外部纹理能否离屏解析取决于后端，**分界线是后端而非机型/系统版本** | `08` 章 8.10.3 |
 
 ## B. 传输与连接
 
