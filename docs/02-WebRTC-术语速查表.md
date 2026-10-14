@@ -14,7 +14,16 @@
 | **Stream（流）** | 若干 Track 的容器，一个 Stream 可含多路 audio/video | 远端来的流通过 `pc.onTrack` 的 `event.streams[0]` 拿到 | `_localStream`、`_remoteStreams` |
 | **getUserMedia** | 浏览器/App 请求摄像头麦克风权限并开始采集 | 需要 HTTPS 或 localhost；App 端就是系统权限 | `createStream()` 第 607 行 |
 | **facingMode** | 指定前摄(`user`)还是后摄(`environment`) | 本项目切换摄像头时翻转该值并重启采集 | `switchCamera()` |
-| **编解码器(Codec)** | 把原始画面/声音压缩成比特流（编码）和解开（解码）的算法 | 视频常见 H.264/VP8/VP9/AV1；音频常见 Opus/G.711 | 由 SDP 协商自动选择，代码基本不感知 |
+| **编解码器(Codec)** | 把原始画面/声音压缩成比特流（编码）和解开（解码）的算法 | 视频常见 H.264/VP8/VP9/AV1；音频常见 Opus/G.711 | 由 SDP 协商自动选择，代码基本不感知；详见 `03` 章 3.2 / 3.3 |
+| **H.264 / AVC** | 同一份编码标准的两个名字（ITU-T H.264 = ISO MPEG-4 Part 10 AVC） | 硬件支持最广、专利清晰；是 WebRTC 强制支持项之一 | 录制产出 `.mp4` 通常就是它 |
+| **H.265 / HEVC** | H.264 的下一代（ITU-T H.265 = ISO MPEG-H Part 2 HEVC） | 同画质省约 40~50% 码率，但编码算力 2~10 倍、专利池混乱 | ❌ **本项目/WebRTC 不支持**（libwebrtc 无 HEVC） |
+| **VP8 / VP9 / AV1** | Google 系的免专利编码，分别对标 H.264 / H.265 / 超越 H.265 | RFC 7742 规定 WebRTC **必须支持 VP8** → 通常是默认首选 | 本项目未指定编码，实际极可能就是 VP8（见 `07` 章 P4） |
+| **软编 / 硬编** | 用 CPU 跑算法 vs 用芯片专用模块（MediaCodec / VideoToolbox） | 硬编省电，但**硬件一般只做 H.264/HEVC，VP8/VP9 编码支持参差** | 决定相机端发热，见 `03` 章 3.2.7 |
+| **I / P / B 帧** | 关键帧（自包含）/ 前向参考帧 / 双向参考帧 | B 帧压缩率最高但要等"未来帧"→ **实时场景通常禁用** | 由 libwebrtc 处理，代码不感知 |
+| **GOP** | 两个 I 帧之间的一串帧 | 决定拖动起播与错误恢复速度 | 录制 10s 片段时相关 |
+| **裸码流(ES)** | 只有编码压缩后的数据，无容器头、无时间戳、无音轨 | `.h264` / `.hevc` 文件即裸码流，**能解码但不能直接"播放"** | 见 `03` 章 3.2.5 |
+| **NALU** | H.264 码流的基本单元（SPS/PPS/IDR/P 片/SEI…） | SPS/PPS 是解码必需的参数集，**必须先给到解码器** | 见 `03` 章 3.2.5 |
+| **Annex-B / AVCC** | H.264 裸码流的两种"摆放方式"：起始码分隔 / 长度前缀分隔 | Annex-B 用于 TS 与直播；**AVCC 用于 MP4**（SPS/PPS 放 `avcC` box） | 录制走 AVCC，推流走 RTP（第三种），见 `03` 章 3.2.6 |
 | **分辨率/帧率/码率** | 画面大小 / 每秒帧数 / 每秒比特量 | 码率=分辨率×帧率×压缩率，是"画质-带宽"权衡 | 约束写在 `createStream()` mandatory 中 |
 | **外部纹理(External Texture)** | 由 native 生产、Flutter 只按 `textureId` 合成的 GPU 纹理 | Dart 层拿不到像素、只持有 id；`Texture` widget 与 `RTCVideoView` 用的都是它 | `08` 章 8.2、8.10 |
 | **离屏快照(toImage)** | 把某一层重新光栅化成一张 `ui.Image` | 走引擎的"离屏路径"，与上屏路径的解析条件不同；外部纹理在离屏下可能拿不到内容 | `08` 章 8.10.2 |
@@ -35,7 +44,12 @@
 | **trickle ICE** | 候选边发现边发，不用等收集完 | 显著加快建连 | onIceCandidate 里逐条发送 |
 | **DTLS** | 数据报传输层安全：PC 上做密钥协商/加密握手 | DataChannel 也走它加密 | PC 内部自动 |
 | **SRTP** | 安全实时传输协议：媒体流的加密传输层 | DTLS 握手后派生密钥给它 | PC 内部自动 |
-| **RTP / RTCP** | 实际传输媒体包的协议 / 反馈统计与控制的兄弟协议 | 媒体=一堆 RTP 包；RTCP 带丢包率等 | 不可见（native 层） |
+| **RTP / RTCP** | 实际传输媒体包的协议 / 反馈统计与控制的兄弟协议 | 媒体=一堆 RTP 包；RTCP 带丢包率等 | 不可见（native 层）；详见 `03` 章 3.4 |
+| **Payload Type (PT)** | RTP 包头里 **7 bit** 的"编码格式代号" | 0~95 静态、96~127 动态；**动态号的含义由 SDP 的 `a=rtpmap` 声明** | 见 `description.sdp` 的 m=video 行 |
+| **FU-A / STAP-A** | H.264 over RTP 的两种打包方式：大 NALU **分片** / 多个小 NALU **聚合**（RFC 6184） | 由 `a=fmtp` 的 `packetization-mode=1` 开启 | 不可见（native 层） |
+| **RTSP** | 实时**会话控制**协议（TCP 554，文本命令，像 HTTP） | **只发 `DESCRIBE/SETUP/PLAY`，一个字节数据都不传**；数据由 RTP 走 | ❌ 本项目未使用 |
+| **RTMP** | Adobe 自研的一体化流媒体协议（TCP 1935，自带封装+分块复用） | 至今仍是**直播推流**事实标准；播放侧已随 Flash 淘汰 | ❌ 本项目未使用 |
+| **HLS** | 苹果的 HTTP 切片分发方案（m3u8 + ts/fMP4） | 延迟 10 秒+，适合大规模分发 | ❌ 本项目未使用 |
 
 ## C. 信令与会话
 
@@ -81,8 +95,8 @@
 ---
 
 ### 仍待补充的术语（TODO）
-- [ ] AVPF / NACK / FEC（抗丢包机制）
-- [ ] SIMULCAST（多分辨率同时上行）
+- [x] AVPF / NACK / FEC（抗丢包机制）→ 已在 `03` 章 3.4.3 覆盖，词条待补进本表
+- [ ] SIMULCAST（多分辨率同时上行）→ 背景见 `03` 章 3.4.5（`signaling.dart:673-715` 有模板）
 - [ ] mDNS / ICE 候选的隐私化
 - [ ] Opus 的 DTX / 舒适噪声
 - [ ] TURN REST API（draft-uberti-behave-turn-rest）
