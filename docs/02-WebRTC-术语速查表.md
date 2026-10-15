@@ -98,5 +98,7 @@
 - [x] AVPF / NACK / FEC（抗丢包机制）→ 已在 `03` 章 3.4.3 覆盖，词条待补进本表
 - [ ] SIMULCAST（多分辨率同时上行）→ 背景见 `03` 章 3.4.5（`signaling.dart:673-715` 有模板）
 - [ ] mDNS / ICE 候选的隐私化
-- [ ] Opus 的 DTX / 舒适噪声
+- [ ] Opus 的 DTX / 舒适噪声（CNG）→ 背景见 `03` 章 3.4.6（音频侧省流机制）
+- [ ] NetEq / PLC / time-stretch（音频抖动缓冲与丢包补偿）→ 背景见 `03` 章 3.4.7
+- [ ] RTCP SR / RR、`a=group:LS`（音画同步）→ 背景见 `03` 章 3.4.2 与 3.4.8
 - [ ] TURN REST API（draft-uberti-behave-turn-rest）
