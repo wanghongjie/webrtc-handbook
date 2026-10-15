@@ -1,0 +1,1957 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="在 Rephone Security 项目（相机端 App + flutter-webrtc-server 信令服务）中边做边写的 WebRTC 学习笔记与踩坑记录">
+      
+      
+        <meta name="author" content="wanghongjie">
+      
+      
+        <link rel="canonical" href="https://wanghongjie.github.io/webrtc-handbook/08-%E5%AA%92%E4%BD%93%E6%B5%81%E4%B8%8E%E6%B8%B2%E6%9F%93%E9%93%BE%E8%B7%AF/">
+      
+      
+        <link rel="prev" href="../07-%E9%97%AE%E9%A2%98%E4%B8%8E%E5%9D%91%E4%BD%8D%E8%AE%B0%E5%BD%95/">
+      
+      
+        <link rel="next" href="../09-%E9%87%87%E9%9B%86%E7%AB%AF%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F%E7%BA%A6%E5%AE%9A/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>08 · 媒体流与渲染链路 - WebRTC 伴随手册</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#08-native" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="WebRTC 伴随手册" class="md-header__button md-logo" aria-label="WebRTC 伴随手册" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            WebRTC 伴随手册
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              08 · 媒体流与渲染链路
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="WebRTC 伴随手册" class="md-nav__button md-logo" aria-label="WebRTC 伴随手册" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    WebRTC 伴随手册
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-WebRTC-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 · WebRTC 基础概念
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-WebRTC-%E6%9C%AF%E8%AF%AD%E9%80%9F%E6%9F%A5%E8%A1%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02 · 术语速查表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-%E9%9F%B3%E8%A7%86%E9%A2%91%E4%B8%8E%E5%AA%92%E4%BD%93%E5%9F%BA%E7%A1%80/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03 · 音视频与媒体基础
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-%E4%BF%A1%E4%BB%A4%E4%B8%8E%E8%BF%9E%E6%8E%A5%E5%BB%BA%E7%AB%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04 · 信令与连接建立
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-%E7%8A%B6%E6%80%81%E6%9C%BA%E4%B8%8E%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05 · 状态机与生命周期
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E5%9C%B0%E5%9B%BE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    06 · 项目代码地图
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-%E9%97%AE%E9%A2%98%E4%B8%8E%E5%9D%91%E4%BD%8D%E8%AE%B0%E5%BD%95/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07 · 问题与坑位记录
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    08 · 媒体流与渲染链路
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    08 · 媒体流与渲染链路
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#80" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.0 路径约定与本图总览
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#81-stream-getusermedia" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 stream 是怎么创建的：getUserMedia 穿透
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.1 stream 是怎么创建的：getUserMedia 穿透">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#811-dart-methodchannel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1.1 Dart 侧：一层 MethodChannel 转发，不做任何实际工作
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#812-mediastream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1.2 返回的 MediaStream 只是"句柄集合"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#813-android" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1.3 Android 侧真正干活的地方
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#814-ios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1.4 iOS 侧
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#815" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1.5 小结
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#82-textureid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 textureId 是什么
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#83-androidtextureid-surfacetexture-surface-eglsurface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Android：textureId ↔ SurfaceTexture ↔ Surface ↔ EGLSurface
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.3 Android：textureId ↔ SurfaceTexture ↔ Surface ↔ EGLSurface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        注册阶段
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        四层绑定关系
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        绑定发生在"第一帧到来时"，不是注册时
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Surface 生命周期
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#84-iostextureid-fluttertexture-cvpixelbuffer-surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 iOS：textureId ↔ FlutterTexture ↔ CVPixelBuffer（没有 Surface）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#85-videotrack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 视频帧是怎么被"接收"的：VideoTrack 是广播器
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#86" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.6 音频是怎么被"接收"的：绕开渲染体系
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#87" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.7 生命周期：绑定与释放顺序
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#88" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.8 对应本项目
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#89" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.9 速查表：现象 → 可能原因
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#810-captureframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.10 从画面里取一张图：captureFrame 与纹理快照
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.10 从画面里取一张图：captureFrame 与纹理快照">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#8101-acaptureframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.10.1 路线 A：captureFrame() 全链路
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8102-brepaintboundarytoimage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.10.2 路线 B：RepaintBoundary.toImage() 纹理快照
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8103" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.10.3 关键机制：外部纹理"二选一"的解析条件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8104-issue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.10.4 已知 issue 与修复节奏
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8105" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.10.5 两条路线对比与本项目选型
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-%E9%87%87%E9%9B%86%E7%AB%AF%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F%E7%BA%A6%E5%AE%9A/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    09 · 采集端与数据格式约定
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#80" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.0 路径约定与本图总览
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#81-stream-getusermedia" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 stream 是怎么创建的：getUserMedia 穿透
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.1 stream 是怎么创建的：getUserMedia 穿透">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#811-dart-methodchannel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1.1 Dart 侧：一层 MethodChannel 转发，不做任何实际工作
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#812-mediastream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1.2 返回的 MediaStream 只是"句柄集合"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#813-android" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1.3 Android 侧真正干活的地方
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#814-ios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1.4 iOS 侧
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#815" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1.5 小结
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#82-textureid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 textureId 是什么
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#83-androidtextureid-surfacetexture-surface-eglsurface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Android：textureId ↔ SurfaceTexture ↔ Surface ↔ EGLSurface
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.3 Android：textureId ↔ SurfaceTexture ↔ Surface ↔ EGLSurface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        注册阶段
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        四层绑定关系
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        绑定发生在"第一帧到来时"，不是注册时
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Surface 生命周期
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#84-iostextureid-fluttertexture-cvpixelbuffer-surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 iOS：textureId ↔ FlutterTexture ↔ CVPixelBuffer（没有 Surface）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#85-videotrack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 视频帧是怎么被"接收"的：VideoTrack 是广播器
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#86" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.6 音频是怎么被"接收"的：绕开渲染体系
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#87" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.7 生命周期：绑定与释放顺序
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#88" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.8 对应本项目
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#89" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.9 速查表：现象 → 可能原因
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#810-captureframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.10 从画面里取一张图：captureFrame 与纹理快照
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8.10 从画面里取一张图：captureFrame 与纹理快照">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#8101-acaptureframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.10.1 路线 A：captureFrame() 全链路
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8102-brepaintboundarytoimage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.10.2 路线 B：RepaintBoundary.toImage() 纹理快照
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8103" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.10.3 关键机制：外部纹理"二选一"的解析条件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8104-issue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.10.4 已知 issue 与修复节奏
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8105" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.10.5 两条路线对比与本项目选型
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="08-native">08 媒体流与渲染链路（穿透 Native）<a class="headerlink" href="#08-native" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>状态：🟢 已填充 ｜ 读者：想知道"画面到底是怎么从 native 跑到屏幕上"的人
+目的：把 Dart 层的 <code>MediaStream</code> / <code>textureId</code> 一路追到平台原生实现，弄清 <strong>stream 在哪创建、纹理怎么绑定、音视频帧怎么被消费、什么时候释放</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="80">8.0 路径约定与本图总览<a class="headerlink" href="#80" title="Permanent link">&para;</a></h2>
+<p>本书中出现的路径简写（行号以本项目当前依赖版本为准）：</p>
+<table>
+<thead>
+<tr>
+<th>简写</th>
+<th>真实路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>flutter_webrtc-1.6.0/</code></td>
+<td><code>~/.pub-cache/hosted/pub.flutter-io.cn/flutter_webrtc-1.6.0/</code></td>
+</tr>
+<tr>
+<td><code>rephone-security/</code></td>
+<td><code>business_workspace/rephone-security/</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>一句话结论</strong>：Dart 层<strong>永远拿不到像素</strong>，它只持有两类句柄——<code>MediaStreamTrack</code>（媒体对象句柄）和 <code>textureId</code>（显示终端句柄）。所有真正的"流"都在 native 线程里跑。</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph Dart["Dart 层（只持有句柄）"]
+        A["MediaStream / MediaStreamTrack&lt;br/&gt;（字符串 id）"]
+        B["RTCVideoRenderer&lt;br/&gt;（textureId）"]
+        C["Texture(textureId) Widget"]
+    end
+    subgraph Native["Native 层（真正的数据流）"]
+        D["VideoSource / VideoTrack&lt;br/&gt;（帧的广播器）"]
+        E["EglRenderer / RTCVideoRenderer&lt;br/&gt;（帧的消费者）"]
+        F["SurfaceTexture / CVPixelBuffer&lt;br/&gt;（GPU 承载物）"]
+        G["ADM（AudioRecord / AudioUnit）&lt;br/&gt;音频出口，不进引擎"]
+    end
+    A -.id.-&gt; D
+    B -.textureId.-&gt; E
+    C -.引擎按 id 查纹理.-&gt; F
+    D --&gt; E --&gt; F</code></pre>
+<hr />
+<h2 id="81-stream-getusermedia">8.1 stream 是怎么创建的：getUserMedia 穿透<a class="headerlink" href="#81-stream-getusermedia" title="Permanent link">&para;</a></h2>
+<h3 id="811-dart-methodchannel">8.1.1 Dart 侧：一层 MethodChannel 转发，不做任何实际工作<a class="headerlink" href="#811-dart-methodchannel" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">// flutter_webrtc-1.6.0/lib/src/native/mediadevices_impl.dart:30-50</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nd">@override</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">Future</span><span class="o">&lt;</span><span class="n">MediaStream</span><span class="o">&gt;</span><span class="w"> </span><span class="n">getUserMedia</span><span class="p">(</span><span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span><span class="w"> </span><span class="kt">dynamic</span><span class="o">&gt;</span><span class="w"> </span><span class="n">mediaConstraints</span><span class="p">)</span><span class="w"> </span><span class="kd">async</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="kd">final</span><span class="w"> </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kd">await</span><span class="w"> </span><span class="n">WebRTC</span><span class="p">.</span><span class="n">invokeMethod</span><span class="p">(</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="s1">'getUserMedia'</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span><span class="w"> </span><span class="kt">dynamic</span><span class="o">&gt;</span><span class="p">{</span><span class="s1">'constraints'</span><span class="o">:</span><span class="w"> </span><span class="n">mediaConstraints</span><span class="p">},</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="p">);</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="kt">String</span><span class="w"> </span><span class="n">streamId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">response</span><span class="p">[</span><span class="s1">'streamId'</span><span class="p">];</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">stream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MediaStreamNative</span><span class="p">(</span><span class="n">streamId</span><span class="p">,</span><span class="w"> </span><span class="s1">'local'</span><span class="p">);</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="n">stream</span><span class="p">.</span><span class="n">setMediaTracks</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s1">'audioTracks'</span><span class="p">]</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="p">[],</span><span class="w"> </span><span class="n">response</span><span class="p">[</span><span class="s1">'videoTracks'</span><span class="p">]</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="p">[]);</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">stream</span><span class="p">;</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="812-mediastream">8.1.2 返回的 <code>MediaStream</code> 只是"句柄集合"<a class="headerlink" href="#812-mediastream" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">// flutter_webrtc-1.6.0/lib/src/native/media_stream_impl.dart:9-33</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kd">class</span><span class="w"> </span><span class="nc">MediaStreamNative</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">MediaStream</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="kd">final</span><span class="w"> </span><span class="n">_audioTracks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">MediaStreamTrack</span><span class="o">&gt;</span><span class="p">[];</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="kd">final</span><span class="w"> </span><span class="n">_videoTracks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&lt;</span><span class="n">MediaStreamTrack</span><span class="o">&gt;</span><span class="p">[];</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">setMediaTracks</span><span class="p">(</span><span class="n">List</span><span class="o">&lt;</span><span class="kt">dynamic</span><span class="o">&gt;</span><span class="w"> </span><span class="n">audioTracks</span><span class="p">,</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="kt">dynamic</span><span class="o">&gt;</span><span class="w"> </span><span class="n">videoTracks</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">var</span><span class="w"> </span><span class="n">track</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">audioTracks</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="n">_audioTracks</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">MediaStreamTrackNative</span><span class="p">(</span><span class="n">track</span><span class="p">[</span><span class="s1">'id'</span><span class="p">],</span><span class="w"> </span><span class="n">track</span><span class="p">[</span><span class="s1">'label'</span><span class="p">],</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">          </span><span class="n">track</span><span class="p">[</span><span class="s1">'kind'</span><span class="p">],</span><span class="w"> </span><span class="n">track</span><span class="p">[</span><span class="s1">'enabled'</span><span class="p">],</span><span class="w"> </span><span class="n">ownerTag</span><span class="p">,</span><span class="w"> </span><span class="n">track</span><span class="p">[</span><span class="s1">'settings'</span><span class="p">]</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="p">{}));</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="p">...</span><span class="w"> </span><span class="c1">// videoTracks 同理</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="p">}</span>
+</code></pre></div>
+<p><code>MediaStreamTrackNative</code> 从平台返回的 Map 里取出 <code>id/label/kind/enabled/settings</code>——<strong>全是元数据</strong>。所以 "获取音视频流" = "向平台要一组 id"。</p>
+<h3 id="813-android">8.1.3 Android 侧真正干活的地方<a class="headerlink" href="#813-android" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>代码位置</th>
+<th>做了什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>视频：建采集器</td>
+<td><code>GetUserMediaImpl.java:297-340</code></td>
+<td><code>Camera2Enumerator/Camera1Enumerator.createCapturer(...)</code></td>
+</tr>
+<tr>
+<td>视频：建 GPU 承载</td>
+<td><code>GetUserMediaImpl.java:795-807</code></td>
+<td><code>SurfaceTextureHelper.create("_texture_camera_thread", EglUtils.getRootEglBaseContext())</code></td>
+</tr>
+<tr>
+<td>视频：接上出口</td>
+<td><code>GetUserMediaImpl.java:806-807</code></td>
+<td><code>videoCapturer.initialize(helper, ctx, videoSource.getCapturerObserver())</code></td>
+</tr>
+<tr>
+<td>视频：开始采集</td>
+<td><code>GetUserMediaImpl.java:856</code></td>
+<td><code>videoCapturer.startCapture(targetWidth, targetHeight, targetFps)</code></td>
+</tr>
+<tr>
+<td>视频：建 track</td>
+<td><code>GetUserMediaImpl.java:867-868</code></td>
+<td><code>pcFactory.createVideoTrack(trackId, videoSource)</code> → <code>mediaStream.addTrack</code></td>
+</tr>
+<tr>
+<td>音频：建 source/track</td>
+<td><code>GetUserMediaImpl.java:397-399</code></td>
+<td><code>createAudioSource(constraints)</code> → <code>createAudioTrack(...)</code></td>
+</tr>
+<tr>
+<td>屏幕共享</td>
+<td><code>GetUserMediaImpl.java:552-581</code></td>
+<td><code>OrientationAwareScreenCapturer</code> + <code>_texture_screen_thread</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="814-ios">8.1.4 iOS 侧<a class="headerlink" href="#814-ios" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>代码位置</th>
+<th>做了什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>视频：采集器</td>
+<td><code>FlutterRTCMediaStream.m:489-490</code></td>
+<td><code>RTCCameraVideoCapturer initWithDelegate:VideoProcessingAdapter</code></td>
+</tr>
+<tr>
+<td>视频：选格式</td>
+<td><code>FlutterRTCMediaStream.m:492-496</code></td>
+<td><code>selectFormatForDevice:targetWidth:targetHeight:</code>（挑最接近的）</td>
+</tr>
+<tr>
+<td>视频：开始</td>
+<td><code>FlutterRTCMediaStream.m:517-520</code></td>
+<td><code>startCaptureWithDevice:format:fps:</code></td>
+</tr>
+<tr>
+<td>视频：建 track</td>
+<td><code>FlutterRTCMediaStream.m:527-529</code></td>
+<td><code>videoTrackWithSource:trackId:</code></td>
+</tr>
+<tr>
+<td>音频：建 source/track</td>
+<td><code>FlutterRTCMediaStream.m:159-162</code></td>
+<td><code>audioSourceWithConstraints:</code> → <code>audioTrackWithSource:</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="815">8.1.5 小结<a class="headerlink" href="#815" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Dart getUserMedia(constraints)
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>   ↓ MethodChannel "getUserMedia"
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>平台层：申请权限 → 开相机/麦克风 → 建 VideoSource/AudioSource → 建 Track
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>   ↓ 返回 { streamId, audioTracks:[{id,kind,...}], videoTracks:[...] }
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>Dart：包装成 MediaStreamNative（只有 id）
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">记住</p>
+<p><code>getUserMedia</code> 之后再没有"数据在 Dart 与 native 之间来回搬运"。Dart 只是拿 id 发指令。</p>
+</div>
+<hr />
+<h2 id="82-textureid">8.2 <code>textureId</code> 是什么<a class="headerlink" href="#82-textureid" title="Permanent link">&para;</a></h2>
+<p><strong><code>textureId</code> 是 Flutter 引擎"纹理注册表"里的槽位号，不是指针。</strong> 两端绑定方式完全不同：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>iOS</th>
+<th>Android</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>注册进引擎的东西</td>
+<td>renderer 对象（实现 <code>FlutterTexture</code> 协议）</td>
+<td><code>SurfaceProducer</code>（内含 <code>SurfaceTexture</code>）</td>
+</tr>
+<tr>
+<td>id 从哪来</td>
+<td><code>registry.registerTexture:self</code> 返回值</td>
+<td><code>textures.createSurfaceProducer().id()</code></td>
+</tr>
+<tr>
+<td>引擎怎么取帧</td>
+<td>回调 <code>copyPixelBuffer</code> 拿 <code>CVPixelBuffer</code></td>
+<td>监听 <code>SurfaceTexture.onFrameAvailable</code></td>
+</tr>
+<tr>
+<td>有没有 Surface</td>
+<td><strong>没有</strong>（像素缓冲直传）</td>
+<td><strong>有</strong>（<code>producer.getSurface()</code>）</td>
+</tr>
+</tbody>
+</table>
+<p>同一个 <code>textureId</code> 只在<strong>本进程内</strong>有效，两端不通用。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// flutter_webrtc-1.6.0/lib/src/native/rtc_video_renderer_impl.dart:21-34</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">Future</span><span class="o">&lt;</span><span class="kt">void</span><span class="o">&gt;</span><span class="w"> </span><span class="n">initialize</span><span class="p">()</span><span class="w"> </span><span class="kd">async</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="kd">final</span><span class="w"> </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kd">await</span><span class="w"> </span><span class="n">WebRTC</span><span class="p">.</span><span class="n">invokeMethod</span><span class="p">(</span><span class="s1">'createVideoRenderer'</span><span class="p">,</span><span class="w"> </span><span class="p">{});</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="n">_textureId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">response</span><span class="p">[</span><span class="s1">'textureId'</span><span class="p">];</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="n">_eventSubscription</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">EventChannel</span><span class="p">(</span><span class="s1">'FlutterWebRTC/Texture</span><span class="si">$</span><span class="n">textureId</span><span class="s1">'</span><span class="p">)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">      </span><span class="p">.</span><span class="n">receiveBroadcastStream</span><span class="p">().</span><span class="n">listen</span><span class="p">(</span><span class="n">eventListener</span><span class="p">,</span><span class="w"> </span><span class="nl">onError:</span><span class="w"> </span><span class="n">errorListener</span><span class="p">);</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">}</span>
+</code></pre></div>
+<p>绑定媒体源时也只是拿 id 发指令：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// flutter_webrtc-1.6.0/lib/src/native/rtc_video_renderer_impl.dart:54-72</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kd">set</span><span class="w"> </span><span class="n">srcObject</span><span class="p">(</span><span class="n">MediaStream</span><span class="o">?</span><span class="w"> </span><span class="n">stream</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">textureId</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="k">throw</span><span class="w"> </span><span class="s1">'Call initialize before setting the stream'</span><span class="p">;</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="n">_srcObject</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stream</span><span class="p">;</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="n">WebRTC</span><span class="p">.</span><span class="n">invokeMethod</span><span class="p">(</span><span class="s1">'videoRendererSetSrcObject'</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">      </span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span><span class="w"> </span><span class="kt">dynamic</span><span class="o">&gt;</span><span class="p">{</span><span class="s1">'textureId'</span><span class="o">:</span><span class="w"> </span><span class="n">textureId</span><span class="p">,</span><span class="w"> </span><span class="s1">'streamId'</span><span class="o">:</span><span class="w"> </span><span class="n">stream</span><span class="o">?</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="s1">''</span><span class="p">,</span><span class="w"> </span><span class="p">...});</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="83-androidtextureid-surfacetexture-surface-eglsurface">8.3 Android：<code>textureId</code> ↔ SurfaceTexture ↔ Surface ↔ EGLSurface<a class="headerlink" href="#83-androidtextureid-surfacetexture-surface-eglsurface" title="Permanent link">&para;</a></h2>
+<h3 id="_1">注册阶段<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// flutter_webrtc-1.6.0/android/.../MethodCallHandlerImpl.java:697-709</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">case</span><span class="w"> </span><span class="s">"createVideoRenderer"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="n">TextureRegistry</span><span class="p">.</span><span class="na">SurfaceProducer</span><span class="w"> </span><span class="n">producer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">textures</span><span class="p">.</span><span class="na">createSurfaceProducer</span><span class="p">();</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="n">FlutterRTCVideoRenderer</span><span class="w"> </span><span class="n">render</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">FlutterRTCVideoRenderer</span><span class="p">(</span><span class="n">producer</span><span class="p">);</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="n">renders</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="n">producer</span><span class="p">.</span><span class="na">id</span><span class="p">(),</span><span class="w"> </span><span class="n">render</span><span class="p">);</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="n">EventChannel</span><span class="w"> </span><span class="n">eventChannel</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">          </span><span class="k">new</span><span class="w"> </span><span class="n">EventChannel</span><span class="p">(</span><span class="n">messenger</span><span class="p">,</span><span class="w"> </span><span class="s">"FlutterWebRTC/Texture"</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">producer</span><span class="p">.</span><span class="na">id</span><span class="p">());</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="n">eventChannel</span><span class="p">.</span><span class="na">setStreamHandler</span><span class="p">(</span><span class="n">render</span><span class="p">);</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">  </span><span class="n">render</span><span class="p">.</span><span class="na">setEventChannel</span><span class="p">(</span><span class="n">eventChannel</span><span class="p">);</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">  </span><span class="n">render</span><span class="p">.</span><span class="na">setId</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="n">producer</span><span class="p">.</span><span class="na">id</span><span class="p">());</span>
+</code></pre></div>
+<p><code>producer.id()</code> 就是回给 Dart 的 <code>textureId</code>；插件只保留 <code>renders[id] = render</code> 映射。</p>
+<h3 id="_2">四层绑定关系<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>textureId ──► SurfaceProducer ──► SurfaceTexture（引擎当纹理用）
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>                     │
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>                     └─► getSurface() ──► Surface ──► createEglSurface() ──► EGLSurface（GL 画布）
+</code></pre></div>
+<h3 id="_3">绑定发生在"第一帧到来时"，不是注册时<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// flutter_webrtc-1.6.0/android/.../SurfaceTextureRenderer.java:99-123</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onFrame</span><span class="p">(</span><span class="n">VideoFrame</span><span class="w"> </span><span class="n">frame</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="kd">synchronized</span><span class="w"> </span><span class="p">(</span><span class="n">surfaceLock</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">surface</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">      </span><span class="n">producer</span><span class="p">.</span><span class="na">setSize</span><span class="p">(</span><span class="n">frame</span><span class="p">.</span><span class="na">getRotatedWidth</span><span class="p">(),</span><span class="n">frame</span><span class="p">.</span><span class="na">getRotatedHeight</span><span class="p">());</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">      </span><span class="n">surface</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">producer</span><span class="p">.</span><span class="na">getSurface</span><span class="p">();</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">      </span><span class="n">createEglSurface</span><span class="p">(</span><span class="n">surface</span><span class="p">);</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">frameSizeChanged</span><span class="p">(</span><span class="n">frame</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">      </span><span class="c1">// producer 的 backing buffer 尺寸固定，setSize 只对之后取到的 Surface 生效</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">      </span><span class="n">releaseEglSurface</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{});</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">      </span><span class="n">surface</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">      </span><span class="n">producer</span><span class="p">.</span><span class="na">setSize</span><span class="p">(</span><span class="n">frame</span><span class="p">.</span><span class="na">getRotatedWidth</span><span class="p">(),</span><span class="w"> </span><span class="n">frame</span><span class="p">.</span><span class="na">getRotatedHeight</span><span class="p">());</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">      </span><span class="n">surface</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">producer</span><span class="p">.</span><span class="na">getSurface</span><span class="p">();</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">      </span><span class="n">createEglSurface</span><span class="p">(</span><span class="n">surface</span><span class="p">);</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">  </span><span class="n">updateFrameDimensionsAndReportEvents</span><span class="p">(</span><span class="n">frame</span><span class="p">);</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">  </span><span class="kd">super</span><span class="p">.</span><span class="na">onFrame</span><span class="p">(</span><span class="n">frame</span><span class="p">);</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="p">}</span>
+</code></pre></div>
+<p>关键点：</p>
+<ul>
+<li>缓冲尺寸必须<strong>等于帧尺寸</strong>（<code>getRotatedWidth/Height</code>，已含旋转）；</li>
+<li>尺寸变化时<strong>必须重建 EGLSurface</strong>，否则会一直渲染进旧的低分辨率 buffer（simulcast 切层就是典型场景）；</li>
+<li>后续每帧：<code>EglRenderer</code> 在自己 GL 线程画 → <code>eglSwapBuffers</code> → 引擎的 <code>OnFrameAvailableListener</code> 触发 → raster 合成。<strong>Android 不需要插件主动通知引擎</strong>。</li>
+</ul>
+<h3 id="surface">Surface 生命周期<a class="headerlink" href="#surface" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">// flutter_webrtc-1.6.0/android/.../SurfaceTextureRenderer.java:143-171</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">surfaceCreated</span><span class="p">(</span><span class="kd">final</span><span class="w"> </span><span class="n">TextureRegistry</span><span class="p">.</span><span class="na">SurfaceProducer</span><span class="w"> </span><span class="n">producer</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="k">this</span><span class="p">.</span><span class="na">producer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">producer</span><span class="p">;</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="k">this</span><span class="p">.</span><span class="na">producer</span><span class="p">.</span><span class="na">setCallback</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">TextureRegistry</span><span class="p">.</span><span class="na">SurfaceProducer</span><span class="p">.</span><span class="na">Callback</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="nd">@Override</span><span class="w"> </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onSurfaceAvailable</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* 初始化并画当前帧 */</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="nd">@Override</span><span class="w"> </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onSurfaceCleanup</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">surfaceDestroyed</span><span class="p">();</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="p">});</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="p">}</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">surfaceDestroyed</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span><span class="kd">synchronized</span><span class="w"> </span><span class="p">(</span><span class="n">surfaceLock</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">    </span><span class="kd">final</span><span class="w"> </span><span class="n">CountDownLatch</span><span class="w"> </span><span class="n">completionLatch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CountDownLatch</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">    </span><span class="n">releaseEglSurface</span><span class="p">(</span><span class="n">completionLatch</span><span class="p">::</span><span class="n">countDown</span><span class="p">);</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">    </span><span class="n">ThreadUtils</span><span class="p">.</span><span class="na">awaitUninterruptibly</span><span class="p">(</span><span class="n">completionLatch</span><span class="p">);</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">    </span><span class="n">surface</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li><code>onSurfaceCleanup</code>（热重载、Texture widget 被移除等）→ 释放并置空 → 下一帧走 <code>surface == null</code> 分支自动重建，这就是"画面能自愈"的机制；</li>
+<li><code>surfaceLock</code> 串行化"帧线程重建"与"主线程销毁"的竞争。</li>
+</ul>
+<hr />
+<h2 id="84-iostextureid-fluttertexture-cvpixelbuffer-surface">8.4 iOS：<code>textureId</code> ↔ FlutterTexture ↔ CVPixelBuffer（没有 Surface）<a class="headerlink" href="#84-iostextureid-fluttertexture-cvpixelbuffer-surface" title="Permanent link">&para;</a></h2>
+<p>一个对象戴三顶帽子——<strong>WebRTC 的帧接收者 + Flutter 的纹理提供者 + 事件流处理器</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">// flutter_webrtc-1.6.0/common/darwin/Classes/FlutterRTCVideoRenderer.h:8-9</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">@interface</span> <span class="nc">FlutterRTCVideoRenderer</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    : <span class="bp">NSObject</span><span class="w"> </span><span class="o">&lt;</span><span class="n">FlutterTexture</span><span class="p">,</span><span class="w"> </span><span class="n">RTCVideoRenderer</span><span class="p">,</span><span class="w"> </span><span class="n">FlutterStreamHandler</span><span class="o">&gt;</span>
+</code></pre></div>
+<p>流程：</p>
+<ol>
+<li><strong>注册</strong>：<code>_textureId = [registry registerTexture:self]</code>（<code>FlutterRTCVideoRenderer.m:44</code>），引擎保存对象引用并分配 id；</li>
+<li><strong>收帧</strong>：<code>[videoTrack addRenderer:self]</code>（<code>FlutterRTCVideoRenderer.m:91</code>）；</li>
+<li><strong>写帧 + 主动通知引擎</strong>（iOS 必须主动喊）：</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1">// flutter_webrtc-1.6.0/common/darwin/Classes/FlutterRTCVideoRenderer.m:194-208</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">renderFrame:</span><span class="p">(</span><span class="n">RTCVideoFrame</span><span class="o">*</span><span class="p">)</span><span class="nv">frame</span><span class="w"> </span><span class="p">{</span><span class="w">   </span><span class="c1">// 简化展示核心逻辑</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="p">...</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">_frameAvailable</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">_pixelBufferRef</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="p">[</span><span class="nb">self</span><span class="w"> </span><span class="n">copyI420ToCVPixelBuffer</span><span class="o">:</span><span class="n">_pixelBufferRef</span><span class="w"> </span><span class="n">withFrame</span><span class="o">:</span><span class="n">frame</span><span class="p">];</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">_textureId</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">-1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">      </span><span class="p">[</span><span class="n">_registry</span><span class="w"> </span><span class="n">textureFrameAvailable</span><span class="o">:</span><span class="n">_textureId</span><span class="p">];</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="n">_frameAvailable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="p">}</span>
+</code></pre></div>
+<ol>
+<li><strong>引擎回调取帧</strong>：</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">// flutter_webrtc-1.6.0/common/darwin/Classes/FlutterRTCVideoRenderer.m:54-63</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="p">-</span> <span class="p">(</span><span class="n">CVPixelBufferRef</span><span class="p">)</span><span class="nf">copyPixelBuffer</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="n">os_unfair_lock_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">_lock</span><span class="p">);</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_pixelBufferRef</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">nil</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">_frameAvailable</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="n">buffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CVBufferRetain</span><span class="p">(</span><span class="n">_pixelBufferRef</span><span class="p">);</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="n">_frameAvailable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+</code></pre></div>
+<ol>
+<li><strong>承载物是带 IOSurface 的 BGRA buffer</strong>，尺寸变化时重建：</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1">// flutter_webrtc-1.6.0/common/darwin/Classes/FlutterRTCVideoRenderer.m:258-269</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">size</span><span class="p">.</span><span class="n">width</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">_frameSize</span><span class="p">.</span><span class="n">width</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">size</span><span class="p">.</span><span class="n">height</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">_frameSize</span><span class="p">.</span><span class="n">height</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_pixelBufferRef</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">CVBufferRelease</span><span class="p">(</span><span class="n">_pixelBufferRef</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="bp">NSDictionary</span><span class="o">*</span><span class="w"> </span><span class="n">pixelAttributes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="l">@{</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="n">kCVPixelBufferIOSurfacePropertiesKey</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="l">@{}}</span><span class="p">;</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="n">CVPixelBufferCreate</span><span class="p">(</span><span class="n">kCFAllocatorDefault</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">.</span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">.</span><span class="n">height</span><span class="p">,</span><span class="w"> </span><span class="n">kCVPixelFormatType_32BGRA</span><span class="p">,</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">                      </span><span class="p">(</span><span class="k">__bridge</span><span class="w"> </span><span class="n">CFDictionaryRef</span><span class="p">)(</span><span class="n">pixelAttributes</span><span class="p">),</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_pixelBufferRef</span><span class="p">);</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">两端是同一条约定的两种实现</p>
+<p>"<strong>尺寸变了必须重建底层承载物</strong>"：Android 重建 EGLSurface，iOS 重建 CVPixelBuffer。
+<code>_frameAvailable</code> 标志位是<strong>背压</strong>：引擎没取走上帧就丢新帧，避免排队堆积。</p>
+</div>
+<hr />
+<h2 id="85-videotrack">8.5 视频帧是怎么被"接收"的：VideoTrack 是广播器<a class="headerlink" href="#85-videotrack" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>UDP → SRTP 解密 → 抖动缓冲 → 视频解码器 → VideoFrame
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>                                              ↓
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>                                      VideoTrack 广播
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>                                   ↙                    ↘
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>              EglRenderer.onFrame（Android）        renderFrame:（iOS）
+</code></pre></div>
+<ul>
+<li>解码器由插件构造并注入（<code>CustomVideoEncoderFactory/CustomVideoDecoderFactory</code>，<code>MethodCallHandlerImpl.java:347-348</code>）；</li>
+<li><code>addSink</code> / <code>addRenderer</code> 就是<strong>订阅</strong>：每解码一帧分发给该 track 的<strong>所有</strong> sink。所以同一远端 track 可以同时喂给"大画面 + 画中画"，本地 track 也可同时"预览 + 编码"；</li>
+<li>回调发生在 native 线程（不是主线程），因此两端都有锁。</li>
+</ul>
+<hr />
+<h2 id="86">8.6 音频是怎么被"接收"的：绕开渲染体系<a class="headerlink" href="#86" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>RTP → NetEQ（抖动缓冲/丢包隐藏/变速）→ OPUS 解码 → APM → ADM → 扬声器
+</code></pre></div>
+<ul>
+<li>Android 出口是 <code>JavaAudioDeviceModule</code> 内的 <code>AudioTrack</code>（<code>MethodCallHandlerImpl.java:256-336</code> 配置并构建）；</li>
+<li>iOS 出口是 AudioEngine 型 ADM 的 AudioUnit（<code>FlutterWebRTCPlugin.m:370-376</code>）；</li>
+<li>Dart 侧唯一抓手：</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1">// flutter_webrtc-1.6.0/android/.../MethodCallHandlerImpl.java:1833-1841</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">mediaStreamTrackSetVolume</span><span class="p">(</span><span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">volume</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">peerConnectionId</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="n">MediaStreamTrack</span><span class="w"> </span><span class="n">track</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getTrackForId</span><span class="p">(</span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">);</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">track</span><span class="w"> </span><span class="k">instanceof</span><span class="w"> </span><span class="n">AudioTrack</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">    </span><span class="p">((</span><span class="n">AudioTrack</span><span class="p">)</span><span class="w"> </span><span class="n">track</span><span class="p">).</span><span class="na">setVolume</span><span class="p">(</span><span class="n">volume</span><span class="p">);</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">为什么两类故障互不相关</p>
+<p>音频<strong>没有纹理、不过引擎、Dart 零参与</strong>。所以"有画面没声音"和"有声音没画面"是两条完全独立的故障链。</p>
+</div>
+<hr />
+<h2 id="87">8.7 生命周期：绑定与释放顺序<a class="headerlink" href="#87" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>Android</th>
+<th>iOS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>注册</td>
+<td><code>createSurfaceProducer()</code> → id</td>
+<td><code>registerTexture:self</code> → id</td>
+</tr>
+<tr>
+<td>绑定</td>
+<td><code>videoTrack.addSink(renderer)</code>（<code>FlutterRTCVideoRenderer.java:265</code>）</td>
+<td><code>[videoTrack addRenderer:self]</code>（<code>.m:91</code>）</td>
+</tr>
+<tr>
+<td>解绑</td>
+<td><code>setVideoTrack(null)</code> → <code>removeSink</code></td>
+<td><code>videoTrack = nil</code> → <code>removeRenderer</code></td>
+</tr>
+<tr>
+<td>释放</td>
+<td><code>Dispose()</code>：<code>surfaceTextureRenderer.release()</code> + <code>producer.release()</code>（<code>FlutterRTCVideoRenderer.java:30-40</code>）</td>
+<td><code>dispose</code>：释放 <code>CVPixelBuffer</code> + <code>unregisterTexture</code></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1">// flutter_webrtc-1.6.0/android/.../FlutterRTCVideoRenderer.java:30-40</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">Dispose</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">    </span><span class="n">setVideoTrack</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">surfaceTextureRenderer</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">surfaceTextureRenderer</span><span class="p">.</span><span class="na">release</span><span class="p">();</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">eventChannel</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="n">eventChannel</span><span class="p">.</span><span class="na">setStreamHandler</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">    </span><span class="n">eventSink</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">    </span><span class="n">producer</span><span class="p">.</span><span class="na">release</span><span class="p">();</span><span class="w">      </span><span class="c1">// ← 引擎注销该 textureId</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="p">}</span>
+</code></pre></div>
+<p>推荐顺序：<strong>先 <code>srcObject = null</code>（或 renderer.dispose），再 <code>track.stop()</code> / 关 PC</strong>。反过来的话 <code>Texture</code> widget 还在但已无生产者，表现为空白。</p>
+<hr />
+<h2 id="88">8.8 对应本项目<a class="headerlink" href="#88" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1">// rephone-security/lib/pages/monitor_viewer_page.dart:86-88</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="kt">void</span><span class="w"> </span><span class="n">_initRenderer</span><span class="p">()</span><span class="w"> </span><span class="kd">async</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">  </span><span class="kd">await</span><span class="w"> </span><span class="n">_remoteRenderer</span><span class="p">.</span><span class="n">initialize</span><span class="p">();</span><span class="w">   </span><span class="c1">// 申请一个 textureId，全程复用</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li><code>initialize()</code> 只调一次 → 一个 <code>textureId</code> 贯穿整个会话；</li>
+<li><code>srcObject = stream</code> 只是换 <code>addSink</code> 目标，<strong>不会重建 textureId / Surface</strong>；</li>
+<li>只有帧尺寸变化才触发 Android 侧 <code>releaseEglSurface + getSurface + createEglSurface</code>；</li>
+<li>复用本地流的逻辑见 <code>rephone-security/lib/services/signaling.dart:635-639</code>（多次会话不重复 <code>getUserMedia</code>，避免相机/音频/纹理句柄泄漏）。</li>
+</ul>
+<hr />
+<h2 id="89">8.9 速查表：现象 → 可能原因<a class="headerlink" href="#89" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>优先排查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>黑屏但能听见声音</td>
+<td><code>textureId</code> 有值但没帧：track 未 <code>addSink</code> / <code>enabled=false</code> / 解码器未起</td>
+</tr>
+<tr>
+<td>画面拉伸或一直模糊</td>
+<td><code>producer.setSize()</code> 尺寸与实际帧不符（Android）；尺寸变化未重建承载物</td>
+</tr>
+<tr>
+<td>画面横竖颠倒</td>
+<td><code>rotation</code> 元数据未应用</td>
+</tr>
+<tr>
+<td>偏色 / 斜纹</td>
+<td>stride 被假设成 width（见 09 章 9.4）</td>
+</tr>
+<tr>
+<td>有画面没声音</td>
+<td>ADM/路由问题（AudioSwitch、AVAudioSession 类别），与渲染无关</td>
+</tr>
+<tr>
+<td>切换会话后卡死/黑屏</td>
+<td>旧 renderer 未 dispose，纹理句柄泄漏</td>
+</tr>
+<tr>
+<td>热重载后画面空白</td>
+<td><code>onSurfaceCleanup</code> 已释放 surface，需等下一帧重建（属正常自愈路径）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="810-captureframe">8.10 从画面里取一张图：captureFrame 与纹理快照<a class="headerlink" href="#810-captureframe" title="Permanent link">&para;</a></h2>
+<p><strong>需求场景</strong>：本项目监控端退出观看页时，要给相机列表存一张封面图（<code>covers/cover_{deviceId}.jpg</code>）。</p>
+<p>"从正在播放的视频里拿一张静止图"看着简单，但在 WebRTC 里<strong>没有免费午餐</strong>——回到 8.0 那句结论：<strong>Dart 层永远拿不到像素</strong>。像素在 native 的 GPU 纹理里，想拿到它只有两条路。</p>
+<table>
+<thead>
+<tr>
+<th>路线</th>
+<th>取的是什么</th>
+<th>一句话本质</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A. <code>MediaStreamTrack.captureFrame()</code></td>
+<td>解码后的 <code>VideoFrame</code></td>
+<td>原生<strong>订阅一帧</strong> → 编码成图片 → <strong>写文件</strong> → Dart 读回</td>
+</tr>
+<tr>
+<td>B. <code>RepaintBoundary.toImage()</code></td>
+<td>已渲染上屏的纹理像素</td>
+<td>让 Flutter 把<strong>这一层</strong>重新光栅化成一张 <code>ui.Image</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="8101-acaptureframe">8.10.1 路线 A：<code>captureFrame()</code> 全链路<a class="headerlink" href="#8101-acaptureframe" title="Permanent link">&para;</a></h3>
+<p>Dart 层只有几行，但注意它<strong>不返回像素</strong>，而是"让原生写个文件，我再读回来"：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1">// flutter_webrtc-1.6.0/lib/src/native/media_stream_track_impl.dart:86-100</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="n">Future</span><span class="o">&lt;</span><span class="n">ByteBuffer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">captureFrame</span><span class="p">()</span><span class="w"> </span><span class="kd">async</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">  </span><span class="kd">var</span><span class="w"> </span><span class="n">filePath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kd">await</span><span class="w"> </span><span class="n">getTemporaryDirectory</span><span class="p">();</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="kd">await</span><span class="w"> </span><span class="n">WebRTC</span><span class="p">.</span><span class="n">invokeMethod</span><span class="p">(</span><span class="s1">'captureFrame'</span><span class="p">,</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span><span class="w"> </span><span class="kt">dynamic</span><span class="o">&gt;</span><span class="p">{</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="s1">'trackId'</span><span class="o">:</span><span class="w"> </span><span class="n">_trackId</span><span class="p">,</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">    </span><span class="s1">'peerConnectionId'</span><span class="o">:</span><span class="w"> </span><span class="n">_peerConnectionId</span><span class="p">,</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">    </span><span class="s1">'path'</span><span class="o">:</span><span class="w"> </span><span class="s1">'</span><span class="si">${</span><span class="n">filePath</span><span class="p">.</span><span class="n">path</span><span class="si">}</span><span class="s1">/captureFrame.png'</span><span class="p">,</span><span class="w">   </span><span class="c1">// ← 固定文件名</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">  </span><span class="p">});</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">File</span><span class="p">(</span><span class="s1">'</span><span class="si">${</span><span class="n">filePath</span><span class="p">.</span><span class="n">path</span><span class="si">}</span><span class="s1">/captureFrame.png'</span><span class="p">).</span><span class="n">readAsBytes</span><span class="p">()</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">      </span><span class="p">.</span><span class="n">then</span><span class="p">((</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">value</span><span class="p">.</span><span class="n">buffer</span><span class="p">);</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="p">}</span>
+</code></pre></div>
+<p>调用链：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>track.captureFrame()
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>  └─ MethodChannel 'captureFrame'
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>      ├─ Android: MethodCallHandlerImpl.java:906-921 → new FrameCapturer(...)
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>      └─ iOS:     FlutterWebRTCPlugin.m:584-603 → FlutterRTCFrameCapturer
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>            ↓ 挂一个临时接收器（addSink / addRenderer）
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>            ↓ 等"下一帧"到来          ← 关键：被动等待
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>            ↓ 编码成图片写盘
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>      ← result.success(null)
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>  └─ File(...).readAsBytes()        ← Dart 再把文件读回来
+</code></pre></div>
+<p><strong>Android</strong>（<code>FrameCapturer.java</code>，实现 <code>org.webrtc.VideoSink</code>）：</p>
+<ol>
+<li>构造时 <code>track.addSink(this)</code>（<code>:31-36</code>）——把自己挂成该 track 的接收器；</li>
+<li><code>onFrame()</code> 用 <code>gotFrame</code> 标志<strong>只处理第一帧</strong>（<code>:39-45</code>）；</li>
+<li>取 I420 的 Y/U/V 三平面，转成 NV21（<code>:60-65</code>）：</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1">// flutter_webrtc-1.6.0/android/.../record/FrameCapturer.java:60-65</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="c1">// NV21 与 NV12 只差 U/V 顺序，所以传参时把 U、V 对调</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="n">YuvHelper</span><span class="p">.</span><span class="na">I420ToNV12</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">strides</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">strides</span><span class="o">[</span><span class="mi">2</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="n">strides</span><span class="o">[</span><span class="mi">1</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">yuvBuffer</span><span class="p">,</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="p">);</span>
+</code></pre></div>
+<ol>
+<li><code>YuvImage.compressToJpeg(rect, 100, out)</code> 落盘；</li>
+<li>按 <code>videoFrame.getRotation()</code> 解码回来、用 <code>Matrix</code> 旋转，<strong>再以 JPEG 100 重压一次</strong>覆盖写（<code>:102-118</code>）；</li>
+<li><code>callback.success(null)</code> 唤醒 Dart，主线程 <code>removeSink</code>。</li>
+</ol>
+<p><strong>iOS</strong>（<code>FlutterRTCFrameCapturer.m</code>，实现 <code>RTCVideoRenderer</code>）：</p>
+<ol>
+<li>构造时 <code>[track addRenderer:self]</code>（<code>:19-31</code>）；</li>
+<li><code>renderFrame:</code> 只取一帧（<code>:36-39</code>）；</li>
+<li>像素来源分两种（<code>:40-49</code>）：远端硬解出来的通常已是 <code>RTCCVPixelBuffer</code>，<strong>零拷贝直接用</strong>；否则 <code>toI420</code> → <code>CVPixelBufferCreate</code> → <code>RTCYUVHelper</code> 手动搬；</li>
+<li>旋转交给 CoreImage（<code>imageByApplyingCGOrientation</code>），再 <code>UIImagePNGRepresentation</code> 写文件（<code>:73-92</code>）。</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">同一份需求，两端产物其实不同</p>
+<p>Android 写的是 <strong>JPEG</strong>（且被重压过一次），iOS 写的是 <strong>PNG</strong>——但文件名都叫 <code>captureFrame.png</code>。扩展名与真实格式并不一致，别按扩展名去解析。</p>
+</div>
+<p><strong>这条路线的固有代价</strong>（详见 <a href="../07-%E9%97%AE%E9%A2%98%E4%B8%8E%E5%9D%91%E4%BD%8D%E8%AE%B0%E5%BD%95/">07 章 P2</a>）：</p>
+<ul>
+<li><strong>被动等帧</strong>：没有新帧就永远不返回，且原生两侧<strong>都没有超时</strong>；</li>
+<li><strong>必须落盘</strong>：一写一读，且 <code>captureFrame.png</code> 是全 App 共用的固定文件名；</li>
+<li><strong>旋转要自己处理</strong>：旋转元数据在 <code>videoFrame.rotation</code> 里，两端各有一套实现。</li>
+</ul>
+<hr />
+<h3 id="8102-brepaintboundarytoimage">8.10.2 路线 B：<code>RepaintBoundary.toImage()</code> 纹理快照<a class="headerlink" href="#8102-brepaintboundarytoimage" title="Permanent link">&para;</a></h3>
+<p><code>RTCVideoView</code> 的本质就是一个 <code>Texture(textureId: ...)</code> widget（见 8.2）。用 <code>RepaintBoundary</code> 把它包住，就给了它一个<strong>独立的 layer</strong>；对这个 layer 调用 <code>toImage()</code>，Flutter 会把这一层<strong>重新光栅化</strong>成一张 <code>ui.Image</code>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="kd">final</span><span class="w"> </span><span class="n">boundary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">_videoBoundaryKey</span><span class="p">.</span><span class="n">currentContext</span><span class="o">!</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">    </span><span class="p">.</span><span class="n">findRenderObject</span><span class="p">()</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">RenderRepaintBoundary</span><span class="p">;</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="kd">final</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kd">await</span><span class="w"> </span><span class="n">boundary</span><span class="p">.</span><span class="n">toImage</span><span class="p">();</span><span class="w">                       </span><span class="c1">// ← 走「离屏光栅化」</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="kd">final</span><span class="w"> </span><span class="n">data</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="kd">await</span><span class="w"> </span><span class="n">image</span><span class="p">.</span><span class="n">toByteData</span><span class="p">(</span><span class="nl">format:</span><span class="w"> </span><span class="n">ui</span><span class="p">.</span><span class="n">ImageByteFormat</span><span class="p">.</span><span class="n">png</span><span class="p">);</span>
+</code></pre></div>
+<p>它走的是引擎的<strong>离屏路径</strong> <code>LayerTree::Flatten</code>，而不是上屏路径 <code>LayerTree::Paint</code>——这两条路的差别，是整件事的关键。</p>
+<div class="admonition danger">
+<p class="admonition-title">上屏能画出来 ≠ 离屏能截出来</p>
+<p>外部纹理（<code>Texture</code> widget 背后那个 GPU 纹理）在两条路径上的"解析条件"不同。屏幕上一切正常，<code>toImage()</code> 却可能给你一张<strong>全透明</strong>的图。</p>
+</div>
+<hr />
+<h3 id="8103">8.10.3 关键机制：外部纹理"二选一"的解析条件<a class="headerlink" href="#8103" title="Permanent link">&para;</a></h3>
+<p>引擎绘制 <code>TextureLayer</code> 时，把三个"渲染上下文"<strong>原样透传</strong>给纹理（<code>flow/layers/texture_layer.cc</code>，注意这里<strong>没有任何平台分支</strong>）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1">// engine: flow/layers/texture_layer.cc → TextureLayer::Paint</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="n">Texture</span><span class="o">::</span><span class="n">PaintContext</span><span class="w"> </span><span class="n">ctx</span><span class="p">{</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="w">    </span><span class="p">.</span><span class="n">canvas</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="n">context</span><span class="p">.</span><span class="n">canvas</span><span class="p">,</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="w">    </span><span class="p">.</span><span class="n">gr_context</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">context</span><span class="p">.</span><span class="n">gr_context</span><span class="p">,</span><span class="w">     </span><span class="c1">// Skia/Ganesh 上下文</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="w">    </span><span class="p">.</span><span class="n">aiks_context</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">context</span><span class="p">.</span><span class="n">aiks_context</span><span class="p">,</span><span class="w">   </span><span class="c1">// Impeller 上下文</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="w">    </span><span class="p">.</span><span class="n">paint</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">context</span><span class="p">.</span><span class="n">state_stack</span><span class="p">.</span><span class="n">fill</span><span class="p">(</span><span class="n">paint</span><span class="p">),</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="p">};</span>
+</code></pre></div>
+<p>GL 平台（Android）拿到后是<strong>二选一</strong>，只要有一个非空就能成功：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>aiks_context 非空  → ResolveTextureImpeller（Impeller 路径）
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>gr_context   非空  → ResolveTextureSkia（Skia 路径：重新 Borrow 一次 GL 纹理）
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>两者都为 null      → 返回 nullptr → 该层不产生任何绘制内容（→ 全透明）
+</code></pre></div>
+<p>所以问题就变成：<strong>离屏路径下，这两个上下文谁会是空的？</strong></p>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th><code>aiks_context</code></th>
+<th><code>gr_context</code></th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Android（3.41.2 实测）</td>
+<td><code>null</code></td>
+<td><strong>非空</strong></td>
+<td>落到 Skia 路径 → <strong>截图正常</strong></td>
+</tr>
+<tr>
+<td>macOS / Metal</td>
+<td><code>null</code></td>
+<td><strong><code>null</code></strong></td>
+<td>两条路都断 → <strong>整块全透明</strong></td>
+</tr>
+</tbody>
+</table>
+<p>根因是 <code>LayerTree::Flatten</code> 构造 <code>PaintContext</code> 时<strong>没有传 <code>aiks_context</code></strong>（该参数是后来才补上的）。这个缺失是跨平台共用的，但：</p>
+<ul>
+<li><strong>macOS</strong>：Impeller 已是唯一后端，Skia 的 <code>gr_context</code> 也为 <code>null</code> → 无路可走；</li>
+<li><strong>Android</strong>：Skia 回退仍在 → 照常工作。</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">所以这和「Android 版本 / 机型」有关系吗？</p>
+<p><strong>没有。</strong> 分界线是<strong>渲染后端（Impeller vs Skia）+ 平台</strong>，不是 Android 系统版本、也不是手机型号。
+反过来说：设备越旧、越不支持 Impeller（强制回落 Skia），反而越安全。</p>
+</div>
+<hr />
+<h3 id="8104-issue">8.10.4 已知 issue 与修复节奏<a class="headerlink" href="#8104-issue" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>issue</th>
+<th>内容</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/flutter/flutter/issues/191797">flutter/flutter#191797</a></td>
+<td><code>scene.toImage</code> 对含平台纹理的图层树返回<strong>全透明</strong>，控制台每帧报 <code>Could not create external texture</code>。维护者确认该路径在 macOS 的 Impeller 下<strong>从未工作过</strong>（不属回归，不进 3.47.x 热修复）</td>
+<td>master 已修，预计随 <strong>3.50 stable</strong>（2026-11）发布</td>
+</tr>
+<tr>
+<td><a href="https://github.com/flutter/flutter/issues/192365">flutter/flutter#192365</a></td>
+<td>Android + Impeller-GLES 上 <code>RepaintBoundary.toImage()</code> 与 surface 销毁竞争，<code>DeviceBufferGLES::OnGetContents</code> <strong>use-after-free（SIGSEGV）</strong></td>
+<td><strong>open</strong>，未修</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">升级 Flutter 到 3.50 后，请把封面截图回归一次</p>
+<p>修复后 <code>aiks_context</code> 会被真正传入，Android 也会改走 <code>ResolveTextureImpeller</code> 分支，而 Impeller 那条路有格式限制（源码中为 <code>Only support GL_RGBA8 format now</code>）。届时 <code>flutter_webrtc</code> 的 SurfaceTexture 能否满足，需要实测确认。</p>
+</div>
+<hr />
+<h3 id="8105">8.10.5 两条路线对比与本项目选型<a class="headerlink" href="#8105" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>A. <code>captureFrame()</code></th>
+<th>B. <code>RepaintBoundary.toImage()</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>耗时量级</td>
+<td>数十 ms 起（官方 issue 实测每次新建接收器 ≈ 94 ms，常驻接收器 ≈ 3.1 ms）</td>
+<td>毫秒级（一次 GPU 读回）</td>
+</tr>
+<tr>
+<td>是否落盘</td>
+<td>必须（写临时文件再读回）</td>
+<td>否</td>
+</tr>
+<tr>
+<td>无新帧时</td>
+<td><strong>永久挂起</strong>（等下一帧，无超时）</td>
+<td>正常返回当前画面</td>
+</tr>
+<tr>
+<td>旋转</td>
+<td>需按 <code>videoFrame.rotation</code> 自行处理</td>
+<td>与屏幕所见一致，无需处理</td>
+</tr>
+<tr>
+<td>分辨率</td>
+<td>原始帧分辨率</td>
+<td>Widget 逻辑尺寸 × <code>pixelRatio</code>（默认 1.0）</td>
+</tr>
+<tr>
+<td>已知缺陷</td>
+<td>挂起、Android Bitmap 泄漏、固定文件名覆盖</td>
+<td>依赖渲染后端（见 8.10.3）</td>
+</tr>
+<tr>
+<td>平台可用性</td>
+<td>全平台一致</td>
+<td>Android 可用；macOS 不可用；<strong>iOS 待实测</strong></td>
+</tr>
+</tbody>
+</table>
+<p>本项目选 <strong>B</strong>。实现分两处，先给视频视图套上边界：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1">// rephone-security/lib/pages/monitor_viewer_page.dart</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="n">RepaintBoundary</span><span class="p">(</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="w">  </span><span class="nl">key:</span><span class="w"> </span><span class="n">_videoBoundaryKey</span><span class="p">,</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="w">  </span><span class="nl">child:</span><span class="w"> </span><span class="n">RTCVideoView</span><span class="p">(</span><span class="n">_remoteRenderer</span><span class="p">),</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="p">),</span>
+</code></pre></div>
+<p>退出页面时截一张存封面：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1">// rephone-security/lib/pages/monitor_viewer_page.dart _captureSnapshot()</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="kd">await</span><span class="w"> </span><span class="n">WidgetsBinding</span><span class="p">.</span><span class="n">instance</span><span class="p">.</span><span class="n">endOfFrame</span><span class="p">;</span><span class="w">   </span><span class="c1">// 等当前帧绘制完成，避免拿到空白层</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="kd">final</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kd">await</span><span class="w"> </span><span class="n">boundary</span><span class="p">.</span><span class="n">toImage</span><span class="p">();</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="kd">final</span><span class="w"> </span><span class="n">data</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="kd">await</span><span class="w"> </span><span class="n">image</span><span class="p">.</span><span class="n">toByteData</span><span class="p">(</span><span class="nl">format:</span><span class="w"> </span><span class="n">ui</span><span class="p">.</span><span class="n">ImageByteFormat</span><span class="p">.</span><span class="n">png</span><span class="p">);</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">两个实现细节</p>
+<ol>
+<li><strong>文件名沿用 <code>.jpg</code></strong>：列表页按 <code>covers/cover_{id}.jpg</code> 固定路径读取，而 <code>Image.file</code> 按<strong>内容</strong>解码、不看扩展名，所以写 PNG 字节进去也能正常显示。若要改扩展名，需同步改 <code>camera_list_page.dart</code>。</li>
+<li><strong><code>pixelRatio</code> 用默认值 1.0</strong>：拿到的是 Widget 逻辑尺寸。想更清晰可传 <code>devicePixelRatio</code>，但对"列表封面"这个用途没必要（列表里本就加载得小，图太大反而费内存）。</li>
+</ol>
+</div>
+<hr />
+<p><strong>下一章</strong>：<a href="../09-%E9%87%87%E9%9B%86%E7%AB%AF%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F%E7%BA%A6%E5%AE%9A/">09 采集端与数据格式约定</a> —— 数据怎么采出来、变成什么格式、两端要遵守哪些约定。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 WebRTC 伴随手册
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.top", "navigation.tracking", "content.code.copy", "content.code.annotate", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>

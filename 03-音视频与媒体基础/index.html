@@ -1,0 +1,3355 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="在 Rephone Security 项目（相机端 App + flutter-webrtc-server 信令服务）中边做边写的 WebRTC 学习笔记与踩坑记录">
+      
+      
+        <meta name="author" content="wanghongjie">
+      
+      
+        <link rel="canonical" href="https://wanghongjie.github.io/webrtc-handbook/03-%E9%9F%B3%E8%A7%86%E9%A2%91%E4%B8%8E%E5%AA%92%E4%BD%93%E5%9F%BA%E7%A1%80/">
+      
+      
+        <link rel="prev" href="../02-WebRTC-%E6%9C%AF%E8%AF%AD%E9%80%9F%E6%9F%A5%E8%A1%A8/">
+      
+      
+        <link rel="next" href="../04-%E4%BF%A1%E4%BB%A4%E4%B8%8E%E8%BF%9E%E6%8E%A5%E5%BB%BA%E7%AB%8B/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>03 · 音视频与媒体基础 - WebRTC 伴随手册</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#03" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="WebRTC 伴随手册" class="md-header__button md-logo" aria-label="WebRTC 伴随手册" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            WebRTC 伴随手册
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              03 · 音视频与媒体基础
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="WebRTC 伴随手册" class="md-nav__button md-logo" aria-label="WebRTC 伴随手册" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    WebRTC 伴随手册
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-WebRTC-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 · WebRTC 基础概念
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-WebRTC-%E6%9C%AF%E8%AF%AD%E9%80%9F%E6%9F%A5%E8%A1%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02 · 术语速查表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03 · 音视频与媒体基础
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03 · 音视频与媒体基础
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么需要这一章
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        内容骨架
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="内容骨架">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.0 先分层：编码 ≠ 容器 ≠ 传输
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 数字音视频的基本概念
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-codec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 编解码器（Codec）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.2 编解码器（Codec）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#321-1-1080p-mb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.1 为什么必须压缩（1 秒 1080p 未压缩 ≈ 上百 MB）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#322-h264-avc-h265-hevc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.2 H.264 / AVC 与 H.265 / HEVC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#323-vp8-vp9-av1google" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.3 VP8 / VP9 / AV1（Google 系，免专利）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#324" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.4 压缩到底怎么做的：四类冗余
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#325-nalu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.5 编码器的产物：裸码流与 NALU
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#326-annex-b-avcc-rtp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.6 裸码流的三种摆放方式：Annex-B / AVCC / RTP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#327-vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.7 软编 vs 硬编
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#328" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.8 本项目实际在用什么 &amp; 怎么查
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-sdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 SDP：编码能力是"怎么约定"的
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.3 SDP：编码能力是&#34;怎么约定&#34;的">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#331-sdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3.1 SDP 长什么样
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#332-payload-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3.2 核心机制：payload type 映射表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#333-offeranswer-rfc-3264webrtc-jsep-rfc-8829" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3.3 offer/answer 协商规则（RFC 3264；WebRTC 走 JSEP RFC 8829）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#334-fmtp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3.4 fmtp 里唯一被协商的"打包细节"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#335" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3.5 设备怎么知道"我支持什么"？（三层叠加）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#336" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3.6 本项目：协商在哪里发生、怎么观测、怎么改
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-rtp-rtcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 RTP / RTCP：媒体怎么在网络上跑
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.4 RTP / RTCP：媒体怎么在网络上跑">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#341-rtp-7-bit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.1 RTP 头：7 bit 说清"我是什么编码"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#342-rtcprtp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.2 RTCP：质量反馈（RTP 的孪生兄弟，必须配套）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#343" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.3 抗丢包三板斧
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#344-rtsp-rtmp-hls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.4 横向对比：RTSP / RTMP / HLS 为什么没被本项目采用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#345-wi-fi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.5 本项目的通话质量为什么有时受 Wi-Fi 波动影响大
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#346" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.6 发送端：音视频是"两个打包器"，不是"两台发射机"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#347" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.7 接收端：解复用之后，两条路走完全不同的容错哲学
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#348-rtp-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.8 音画同步：不是"对齐 RTP timestamp"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-mediastream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 远端流渲染：从 MediaStream 句柄到屏幕上的一帧
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.5 远端流渲染：从 MediaStream 句柄到屏幕上的一帧">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#351-dart-mediastream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.1 先破除误解：Dart 的 MediaStream 里没有任何像素
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#352-mediastream-srcobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.2 远端 MediaStream 是怎么诞生的（srcObject 之前）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#353-srcobject-stream-videotrack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.3 srcObject = stream：四次查表才落到 VideoTrack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#354-addsink" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.4 addSink：唯一的绑定落点
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#355-android-ios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.5 一帧的生命周期：Android 与 iOS 走了两条完全不同的路
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#356-widget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.6 事件回流：尺寸 / 旋转 / 首帧如何让 widget 自动重排
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#357" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.7 渲染层实践要点与坑位
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#358" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.8 回声与音频路由（待展开）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 本项目"录下来的是什么"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.6 本项目&#34;录下来的是什么&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#datachannel-rtmp-http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么回调用 DataChannel 传文件，而不是 RTMP / HTTP？
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        待填充清单（每次补一节就更新）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        对应本项目
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-%E4%BF%A1%E4%BB%A4%E4%B8%8E%E8%BF%9E%E6%8E%A5%E5%BB%BA%E7%AB%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04 · 信令与连接建立
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-%E7%8A%B6%E6%80%81%E6%9C%BA%E4%B8%8E%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05 · 状态机与生命周期
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E5%9C%B0%E5%9B%BE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    06 · 项目代码地图
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-%E9%97%AE%E9%A2%98%E4%B8%8E%E5%9D%91%E4%BD%8D%E8%AE%B0%E5%BD%95/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07 · 问题与坑位记录
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-%E5%AA%92%E4%BD%93%E6%B5%81%E4%B8%8E%E6%B8%B2%E6%9F%93%E9%93%BE%E8%B7%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    08 · 媒体流与渲染链路
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-%E9%87%87%E9%9B%86%E7%AB%AF%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F%E7%BA%A6%E5%AE%9A/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    09 · 采集端与数据格式约定
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么需要这一章
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        内容骨架
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="内容骨架">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.0 先分层：编码 ≠ 容器 ≠ 传输
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 数字音视频的基本概念
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-codec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 编解码器（Codec）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.2 编解码器（Codec）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#321-1-1080p-mb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.1 为什么必须压缩（1 秒 1080p 未压缩 ≈ 上百 MB）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#322-h264-avc-h265-hevc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.2 H.264 / AVC 与 H.265 / HEVC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#323-vp8-vp9-av1google" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.3 VP8 / VP9 / AV1（Google 系，免专利）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#324" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.4 压缩到底怎么做的：四类冗余
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#325-nalu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.5 编码器的产物：裸码流与 NALU
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#326-annex-b-avcc-rtp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.6 裸码流的三种摆放方式：Annex-B / AVCC / RTP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#327-vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.7 软编 vs 硬编
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#328" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2.8 本项目实际在用什么 &amp; 怎么查
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-sdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 SDP：编码能力是"怎么约定"的
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.3 SDP：编码能力是&#34;怎么约定&#34;的">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#331-sdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3.1 SDP 长什么样
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#332-payload-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3.2 核心机制：payload type 映射表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#333-offeranswer-rfc-3264webrtc-jsep-rfc-8829" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3.3 offer/answer 协商规则（RFC 3264；WebRTC 走 JSEP RFC 8829）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#334-fmtp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3.4 fmtp 里唯一被协商的"打包细节"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#335" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3.5 设备怎么知道"我支持什么"？（三层叠加）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#336" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3.6 本项目：协商在哪里发生、怎么观测、怎么改
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-rtp-rtcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 RTP / RTCP：媒体怎么在网络上跑
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.4 RTP / RTCP：媒体怎么在网络上跑">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#341-rtp-7-bit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.1 RTP 头：7 bit 说清"我是什么编码"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#342-rtcprtp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.2 RTCP：质量反馈（RTP 的孪生兄弟，必须配套）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#343" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.3 抗丢包三板斧
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#344-rtsp-rtmp-hls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.4 横向对比：RTSP / RTMP / HLS 为什么没被本项目采用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#345-wi-fi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.5 本项目的通话质量为什么有时受 Wi-Fi 波动影响大
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#346" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.6 发送端：音视频是"两个打包器"，不是"两台发射机"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#347" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.7 接收端：解复用之后，两条路走完全不同的容错哲学
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#348-rtp-timestamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4.8 音画同步：不是"对齐 RTP timestamp"
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-mediastream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 远端流渲染：从 MediaStream 句柄到屏幕上的一帧
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.5 远端流渲染：从 MediaStream 句柄到屏幕上的一帧">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#351-dart-mediastream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.1 先破除误解：Dart 的 MediaStream 里没有任何像素
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#352-mediastream-srcobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.2 远端 MediaStream 是怎么诞生的（srcObject 之前）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#353-srcobject-stream-videotrack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.3 srcObject = stream：四次查表才落到 VideoTrack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#354-addsink" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.4 addSink：唯一的绑定落点
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#355-android-ios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.5 一帧的生命周期：Android 与 iOS 走了两条完全不同的路
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#356-widget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.6 事件回流：尺寸 / 旋转 / 首帧如何让 widget 自动重排
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#357" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.7 渲染层实践要点与坑位
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#358" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.8 回声与音频路由（待展开）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 本项目"录下来的是什么"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.6 本项目&#34;录下来的是什么&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#datachannel-rtmp-http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么回调用 DataChannel 传文件，而不是 RTMP / HTTP？
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        待填充清单（每次补一节就更新）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        对应本项目
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="03">03 音视频与媒体基础<a class="headerlink" href="#03" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>状态：🟡 已填充 3.0 / 3.1 / 3.2 / 3.3 / 3.4 / 3.6，待补真实 SDP 样例与 3.5.8 ｜ 难度：★★☆☆☆
+3.4 已含：RTP 头 → RTCP(SR/RR) → 抗丢包 → 与 RTSP/RTMP/HLS 对比 → <strong>3.4.6 音视频分路打包 / 3.4.7 接收端与 NetEq / 3.4.8 音画同步</strong>。
+本章要解决的问题：<strong>画面到底是怎么从"摄像头"变成"另一台手机屏幕上的一帧"的？</strong></p>
+</blockquote>
+<hr />
+<h2 id="_1">为什么需要这一章<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>前面 01 章已经知道媒体是 P2P 的 RTP 包。但"打包"之前，音视频原始数据经历了 采集 → 编码 → 封包；接收端反向 拆包 → 解码 → 渲染。这一章把中间的每一步讲透，理解后才能回答诸如：
+- 为什么分辨率/帧率约束写在 <code>getUserMedia</code> 的 mandatory 里？
+- 为什么 SDP 里会列出 H.264/VP8 一堆编码？<strong>两端到底选了哪个，怎么得知？</strong>
+- <strong>RTMP / RTSP / RTP / H.264 / H.265 到底谁是"视频流"？</strong>（3.0 先分层，别串味）
+- 为什么偶发卡顿/马赛克？（丢包、无 FEC/NACK）
+- 为什么相机端 CPU 发热？（<strong>编码很贵，且很可能是软编</strong> → 3.2.7、07 章 P4）
+- 为什么回放不是"看直播"而是"下文件"？（3.6）</p>
+<h2 id="_2">内容骨架<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h3 id="30">3.0 先分层：编码 ≠ 容器 ≠ 传输<a class="headerlink" href="#30" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>状态：🟢 已填充
+这一节是整章的"总纲"。搞不清这一节，后面所有概念都会串味。</p>
+</blockquote>
+<p>学 WebRTC 时最常被这几个词绕晕：<strong>RTMP / RTSP / RTP / H.264 / H.265</strong>。它们经常被并列放在一起说，但<strong>根本不在同一个层级上</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>本质</th>
+<th>所处层级</th>
+<th>它是不是"视频流"？</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>H.264 / AVC</strong></td>
+<td>视频<strong>压缩编码标准</strong></td>
+<td>编码层（Codec）</td>
+<td>❌ 它只是"怎么把像素压成字节"的算法</td>
+</tr>
+<tr>
+<td><strong>H.265 / HEVC</strong></td>
+<td>视频<strong>压缩编码标准</strong>（H.264 的下一代）</td>
+<td>编码层</td>
+<td>❌ 同上</td>
+</tr>
+<tr>
+<td><strong>VP8 / VP9 / AV1</strong></td>
+<td>视频<strong>压缩编码标准</strong>（Google 系）</td>
+<td>编码层</td>
+<td>❌ 同上</td>
+</tr>
+<tr>
+<td><strong>RTP</strong></td>
+<td>实时<strong>传输协议</strong>（配套 RTCP 做质量反馈）</td>
+<td>传输层（通常跑 UDP）</td>
+<td>✅ 承载层：只管"分包 + 时间戳 + 序号"</td>
+</tr>
+<tr>
+<td><strong>RTSP</strong></td>
+<td>实时<strong>会话控制协议</strong>（文本协议，像 HTTP）</td>
+<td>控制/信令层</td>
+<td>❌ 它只发 <code>DESCRIBE/SETUP/PLAY</code>，<strong>不传数据</strong></td>
+</tr>
+<tr>
+<td><strong>RTMP</strong></td>
+<td>Adobe 的<strong>一体化流媒体协议</strong>（自带封装 + 传输）</td>
+<td>封装 + 传输层（TCP）</td>
+<td>✅ 完整方案，自成一套</td>
+</tr>
+</tbody>
+</table>
+<p>分层之后是这样叠起来的：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>原始像素
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>   ↓  〔编码层〕H.264 / H.265 / VP8 / VP9 / AV1  —— 决定"怎么压"
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>压缩后的帧（裸码流）
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>   ↓  〔封装层〕Annex-B / AVCC / FU-A            —— 决定"怎么摆"（见 3.2.6）
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>   ↓  〔传输层〕RTP/SRTP（UDP） 或 RTMP（TCP）   —— 决定"怎么送"
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>网络包
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>   ↑  〔控制层〕RTSP / SDP / 自定义信令          —— 只是"遥控器"，不传数据
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">一句话记忆</p>
+<p><strong>编码决定"怎么压"，封装决定"怎么摆"，传输决定"怎么送"，控制层只负责"怎么约"。</strong>
+四者正交、可自由组合：<strong>RTMP 里可以装 H.264；RTP 里也可以装 H.264；RTSP 控制的那条 RTP 里同样可以是 H.264 或 H.265。</strong>
+所以"用 RTMP 还是用 H.264"是个伪问题——它们不在同一个选项集里。</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">本项目一个字都没用到 RTSP / RTMP / HLS</p>
+<p>本项目（相机端 ↔ 监控端，两端都是自己的 App）<strong>全程只走 WebRTC</strong>：信令用 WSS、媒体用 SRTP、回放用 DataChannel 传文件。
+本章之所以仍要讲 RTSP/RTMP，是因为排查问题时最容易把这几套方案张冠李戴——见 3.4.4 的横向对比。</p>
+</div>
+<h3 id="31">3.1 数字音视频的基本概念<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>状态：🟡 要点已填充</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>视频</th>
+<th>音频</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>最小单位</td>
+<td><strong>帧</strong>（一张图）</td>
+<td><strong>采样点</strong></td>
+</tr>
+<tr>
+<td>每秒多少个</td>
+<td><strong>帧率 fps</strong>（25/30/60）</td>
+<td><strong>采样率 Hz</strong>（48000 / 16000）</td>
+</tr>
+<tr>
+<td>单位大小</td>
+<td><strong>分辨率</strong>（1920×1080）</td>
+<td><strong>位深</strong>（16 bit）+ <strong>声道</strong>（1/2）</td>
+</tr>
+<tr>
+<td>原始排列</td>
+<td><strong>像素格式</strong>：I420 / NV12 / BGRA（见 09 章 9.4）</td>
+<td>PCM</td>
+</tr>
+<tr>
+<td>每秒数据量</td>
+<td>分辨率 × 帧率 × 1.5 字节</td>
+<td>采样率 × 位深/8 × 声道</td>
+</tr>
+</tbody>
+</table>
+<p><strong>码率（bitrate）= 数据量 / 时间</strong>，是"画质 ↔ 带宽"的权衡旋钮。一段 1080p30 的未压缩 YUV：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>1920 × 1080 × 1.5 字节 × 30 帧 ≈ 93 MB/s ≈ 750 Mbps
+</code></pre></div>
+<p>而压缩后（H.264）通常只要 <strong>2~5 Mbps</strong>——差了两个数量级，这就是编码存在的意义。</p>
+<blockquote>
+<p><strong>本项目的采集约束对应关系</strong>：<code>signaling.dart:607-626</code> 的 <code>mediaConstraints</code> 里写 <code>minWidth/minHeight/minFrameRate</code>，这是对<strong>采集</strong>的期望（注意是"期望"不是"承诺"，实际会被设备能力与带宽自适应改写——详见 09 章 9.7）。
+它<strong>约束的是分辨率/帧率，与用什么编码无关</strong>。</p>
+</blockquote>
+<h3 id="32-codec">3.2 编解码器（Codec）<a class="headerlink" href="#32-codec" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>状态：🟢 已填充</p>
+</blockquote>
+<h4 id="321-1-1080p-mb">3.2.1 为什么必须压缩（1 秒 1080p 未压缩 ≈ 上百 MB）<a class="headerlink" href="#321-1-1080p-mb" title="Permanent link">&para;</a></h4>
+<p>见 3.1 的算式。<strong>不压缩就没法在网络上实时传</strong>，这是硬约束。</p>
+<h4 id="322-h264-avc-h265-hevc">3.2.2 H.264 / AVC 与 H.265 / HEVC<a class="headerlink" href="#322-h264-avc-h265-hevc" title="Permanent link">&para;</a></h4>
+<p><strong>命名要先说清：一个标准、两个名字</strong>——视频编码标准由 ITU-T 和 ISO/IEC 联合发布，所以同一份标准有两套编号：</p>
+<table>
+<thead>
+<tr>
+<th>通俗叫法</th>
+<th>ITU-T 编号</th>
+<th>ISO/IEC 编号</th>
+<th>正式英文名（缩写）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>H.264</strong></td>
+<td>H.264</td>
+<td>MPEG-4 Part 10</td>
+<td><strong>AVC</strong> = Advanced Video Coding</td>
+</tr>
+<tr>
+<td><strong>H.265</strong></td>
+<td>H.265</td>
+<td>MPEG-H Part 2</td>
+<td><strong>HEVC</strong> = High Efficiency Video Coding</td>
+</tr>
+</tbody>
+</table>
+<p>所以 <strong>H.264 == AVC，H.265 == HEVC</strong>，就是"土豆"和"马铃薯"。代码里见到 <code>video/avc</code>、<code>avc1</code>、<code>hvc1</code>，指的就是它们。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>H.264 / AVC（2003）</th>
+<th>H.265 / HEVC（2013）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>压缩率</td>
+<td>基准</td>
+<td><strong>同画质省约 40~50% 码率</strong></td>
+</tr>
+<tr>
+<td>基本单元</td>
+<td>宏块<strong>固定 16×16</strong></td>
+<td>CTU 最大 <strong>64×64</strong>，四叉树自适应切分</td>
+</tr>
+<tr>
+<td>帧内预测方向</td>
+<td>9 种</td>
+<td><strong>35 种</strong></td>
+</tr>
+<tr>
+<td>编码复杂度</td>
+<td>基线</td>
+<td><strong>编码端 2~10 倍</strong>，解码端 1.5~2 倍</td>
+</tr>
+<tr>
+<td>专利授权</td>
+<td>MPEG LA 一家，清晰</td>
+<td><strong>三家专利池</strong>（MPEG LA / HEVC Advance / Velos），混乱</td>
+</tr>
+<tr>
+<td>生态支持</td>
+<td>几乎所有芯片/浏览器<strong>全部支持</strong></td>
+<td>硬件与浏览器支持残缺</td>
+</tr>
+<tr>
+<td><strong>WebRTC</strong></td>
+<td>✅ 支持</td>
+<td>❌ <strong>不支持</strong>（libwebrtc 无 HEVC）</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">H.265 没进实时通信领域的根因</p>
+<p>H.265 是"用 2~10 倍编码算力 + 一堆专利麻烦，换 40% 带宽"。
+移动端长时间推流时，<strong>编码算力直接转换成发热和耗电</strong>——本项目相机端正是"一部手机开着摄像头连续推流数小时"，这笔账是亏的。</p>
+</div>
+<h4 id="323-vp8-vp9-av1google">3.2.3 VP8 / VP9 / AV1（Google 系，免专利）<a class="headerlink" href="#323-vp8-vp9-av1google" title="Permanent link">&para;</a></h4>
+<p>这是<strong>另一条 lineage</strong>，和 ITU/ISO 的 H.26x 系列是竞争关系：</p>
+<table>
+<thead>
+<tr>
+<th>编码</th>
+<th>出身</th>
+<th>对标</th>
+<th>关键卖点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>VP8</strong></td>
+<td>On2 开发，Google 2010 收购后开源</td>
+<td>H.264</td>
+<td><strong>免版税（royalty-free）</strong></td>
+</tr>
+<tr>
+<td><strong>VP9</strong></td>
+<td>Google 自研</td>
+<td>H.265</td>
+<td>效率接近 HEVC，但<strong>编码复杂度远低于 HEVC</strong></td>
+</tr>
+<tr>
+<td><strong>AV1</strong></td>
+<td>AOMedia 联盟（Google/Netflix/Amazon/Apple…）</td>
+<td>超越 H.265</td>
+<td>免专利 + 比 VP9 再省 30%，但<strong>算力极高</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>VP8/VP9 通常装在 <strong>WebM</strong> 容器里，配 <strong>Opus/Vorbis</strong> 音频——这是 Google 的一整套免专利组合拳。</li>
+<li><strong>VP8 是 WebRTC 的强制项</strong>：RFC 7742 规定 WebRTC 实现<strong>必须支持 VP8 和 H.264</strong>（音频必须支持 Opus 和 G.711）。这就是"任何两个 WebRTC 端点一定能通话"的兜底。</li>
+<li><strong>VP8/VP9 没有 NALU 概念</strong>（见 3.2.5），它们是"帧 + 自带 frame header"的结构，参数写在帧头里，不需要额外传参数集。</li>
+</ul>
+<h4 id="324">3.2.4 压缩到底怎么做的：四类冗余<a class="headerlink" href="#324" title="Permanent link">&para;</a></h4>
+<p>编码器干的事，就是<strong>找出并扔掉四类冗余</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>冗余类型</th>
+<th>大白话</th>
+<th>做法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>时间冗余</strong>（贡献最大）</td>
+<td>相邻两帧几乎一样，只有一小块在动</td>
+<td><strong>运动估计/运动补偿</strong>：在上一帧"找"这块内容跑哪去了，只记<strong>运动矢量</strong>（"这块往右挪 30px"）+ 一小块<strong>残差</strong></td>
+</tr>
+<tr>
+<td><strong>空间冗余</strong></td>
+<td>一整片蓝天，不用逐像素记</td>
+<td><strong>帧内预测</strong>：用周围已编好的像素"猜"当前块，只编码猜不准的差值</td>
+</tr>
+<tr>
+<td><strong>视觉冗余</strong>（有损的根源）</td>
+<td>人眼对亮度敏感、对颜色不敏感；对轮廓敏感、对细微纹理不敏感</td>
+<td>① <strong>4:2:0 色度抽样</strong>（颜色信息砍到 1/4）<br>② <strong>DCT 变换 + 量化</strong>：转频域后把高频系数按 QP 成批抹零</td>
+</tr>
+<tr>
+<td><strong>编码冗余</strong>（无损）</td>
+<td>数据里还有统计规律（比如一串 0）</td>
+<td><strong>熵编码</strong>（CAVLC / CABAC），类似 ZIP</td>
+</tr>
+</tbody>
+</table>
+<p><strong>量化步长 QP</strong> 就是平时说的"画质/码率旋钮"：QP 越大 → 抹掉越多 → 码率越低、画面越糊（块效应、振铃）。</p>
+<p><strong>三种帧类型</strong>（由时间冗余引出）：</p>
+<table>
+<thead>
+<tr>
+<th>帧</th>
+<th>参考谁</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>I 帧</strong>（关键帧 / IDR）</td>
+<td>自包含，不参考别人</td>
+<td>体积最大；是<strong>随机访问点</strong>（拖动进度条）和<strong>错误恢复点</strong></td>
+</tr>
+<tr>
+<td><strong>P 帧</strong></td>
+<td>只参考<strong>前面</strong>的帧</td>
+<td>靠运动矢量 + 残差</td>
+</tr>
+<tr>
+<td><strong>B 帧</strong></td>
+<td><strong>前后双向</strong>参考</td>
+<td>压缩率最高，但要等"未来帧"到达 → <strong>引入缓冲延迟</strong></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">为什么实时通话基本不用 B 帧</p>
+<p>B 帧要求"后面的帧先到"，天然带来乱序和缓冲。追求亚秒级延迟的 WebRTC/直播场景<strong>通常禁用 B 帧</strong>——这也是"实时流"和"离线压制"画质/延迟取舍的分水岭。
+<strong>本项目没有干预这项</strong>，由 libwebrtc 按实时场景默认处理。</p>
+</div>
+<p>一串从一个 I 帧到下一个 I 帧之间的帧叫一个 <strong>GOP（Group of Pictures）</strong>。本项目录 10 秒一段 MP4，GOP 长度直接影响起播与拖动体验。</p>
+<h4 id="325-nalu">3.2.5 编码器的产物：裸码流与 NALU<a class="headerlink" href="#325-nalu" title="Permanent link">&para;</a></h4>
+<p><strong>裸码流（Elementary Stream, ES）</strong> = 只有编码压缩后的视频数据本身，<strong>没有</strong>外面那层包装：</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>例子</th>
+<th>能否直接播放</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>裸码流 ES</strong></td>
+<td><code>.h264</code> / <code>.hevc</code> 文件</td>
+<td>❌ 能解码，但<strong>没有时间戳、没有音轨、没有元数据</strong>，没法"播放"</td>
+</tr>
+<tr>
+<td>+ 时间戳 = PES</td>
+<td>TS 流里的一路</td>
+<td>部分</td>
+</tr>
+<tr>
+<td>+ 容器封装</td>
+<td><code>.mp4</code> / <code>.mov</code> / <code>.ts</code></td>
+<td>✅ 完整可播放</td>
+</tr>
+</tbody>
+</table>
+<p>H.264 把裸码流组织成一串 <strong>NALU（Network Abstraction Layer Unit）</strong>，每个 NALU 有类型：</p>
+<table>
+<thead>
+<tr>
+<th>NALU 类型</th>
+<th>内容</th>
+<th>属于</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SPS</strong></td>
+<td>全局参数：分辨率、profile、level</td>
+<td>non-VCL</td>
+</tr>
+<tr>
+<td><strong>PPS</strong></td>
+<td>图像参数：熵编码方式、QP 等</td>
+<td>non-VCL</td>
+</tr>
+<tr>
+<td><strong>IDR / I 帧片</strong></td>
+<td>关键帧数据</td>
+<td>VCL（真像素）</td>
+</tr>
+<tr>
+<td><strong>非 IDR 片</strong></td>
+<td>P/B 帧数据</td>
+<td>VCL</td>
+</tr>
+<tr>
+<td><strong>SEI / AUD</strong></td>
+<td>附加信息 / 分隔符</td>
+<td>non-VCL</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">SPS/PPS 必须先给到解码器</p>
+<p>否则解码器就算拿到帧数据也不知道怎么解（不知道分辨率和参数）。<strong>"SPS/PPS 放哪儿"正是下面三种摆放方式的核心差异。</strong></p>
+</div>
+<h4 id="326-annex-b-avcc-rtp">3.2.6 裸码流的三种摆放方式：Annex-B / AVCC / RTP<a class="headerlink" href="#326-annex-b-avcc-rtp" title="Permanent link">&para;</a></h4>
+<p>NALU 长度<strong>任意</strong>（SPS 可能 30 字节，1080p 的 I 帧可能 500 KB）。三种格式本质上都在解决"这一串 NALU 怎么被正确读出来"，但<strong>约束条件不同</strong>：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Annex-B</strong></th>
+<th><strong>AVCC</strong></th>
+<th><strong>RTP（RFC 6184）</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>本质</td>
+<td>字节流的<strong>定界格式</strong></td>
+<td>文件的<strong>定界格式</strong></td>
+<td><strong>网络传输协议</strong></td>
+</tr>
+<tr>
+<td>解决什么问题</td>
+<td>连续字节流里找边界</td>
+<td>文件中精确定位</td>
+<td>MTU 适配 + 时序 + 丢包/乱序</td>
+</tr>
+<tr>
+<td>分隔方式</td>
+<td>起始码 <code>00 00 00 01</code></td>
+<td><strong>长度前缀</strong>（通常 4 字节）</td>
+<td><strong>不需要</strong>（UDP 包天然有边界）</td>
+</tr>
+<tr>
+<td>SPS/PPS</td>
+<td><strong>内联</strong>在流里，关键帧前重复发</td>
+<td>抽到 <strong><code>avcC</code> box</strong>（带外）</td>
+<td>SDP 的 <code>sprop-parameter-sets</code> 或 STAP-A</td>
+</tr>
+<tr>
+<td>大 NALU 怎么办</td>
+<td>不管（整块写）</td>
+<td>不管（整块写）</td>
+<td><strong>FU-A 主动分片</strong></td>
+</tr>
+<tr>
+<td>时间戳/丢包检测</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>随机访问</td>
+<td>差（要扫字节）</td>
+<td><strong>好</strong>（可算偏移）</td>
+<td>不适用</td>
+</tr>
+<tr>
+<td>中途接入</td>
+<td><strong>好</strong>（随时拿到参数）</td>
+<td>差（必须先读头）</td>
+<td>好</td>
+</tr>
+<tr>
+<td>典型场景</td>
+<td>TS、直播、<code>.h264</code></td>
+<td><strong>MP4 / MOV / MKV</strong></td>
+<td>WebRTC、RTSP+UDP</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Annex-B : ... 00 00 00 01 [SPS] 00 00 00 01 [PPS] 00 00 00 01 [I帧 500KB] ...
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>AVCC    : [00 00 00 1E][SPS 30B]  [00 00 07 A1 20][I帧 500KB] ...
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>                长度=30                长度=500000
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>RTP     : 500KB 的 I 帧 → 拆成几百个 FU-A 包，每包带「开始/中间/结束」标志
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Annex-B ↔ AVCC 可以无损互转</p>
+<p>只是换分隔符、搬 SPS/PPS 位置，NALU 内容一个字节都不变。FFmpeg 的 <code>h264_mp4toannexb</code> / <code>h264_annexbtoavcc</code> 就是干这个的。</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">最精妙的对比点</p>
+<p><strong>起始码/长度前缀的存在，是因为"没有天然边界"；而 UDP 包本身就是天然边界。</strong>
+所以 RTP <strong>不需要</strong>任何一种定界符，它需要的反而是<strong>相反的能力</strong>——把一个太大的 NALU <strong>拆开</strong>（FU-A）。
+RFC 6184 定义了：<code>Single NALU</code>（小包直通）、<strong><code>FU-A</code></strong>（大 NALU 分片，最常用）、<code>STAP-A</code>（多个小 NALU 聚合，常用来一起发 SPS+PPS）。</p>
+</div>
+<blockquote>
+<p><strong>本项目链路对照</strong>：编码器输出 → libwebrtc 内部 → <strong>RTP（FU-A/STAP-A）</strong> 发给监控端；同时本地录制分支另走 <strong>MP4（AVCC）</strong> 落盘——详见 3.6。</p>
+</blockquote>
+<h4 id="327-vs">3.2.7 软编 vs 硬编<a class="headerlink" href="#327-vs" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>软件编码（libvpx / OpenH264）</th>
+<th>硬件编码（MediaCodec / VideoToolbox）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>跑在哪</td>
+<td>CPU</td>
+<td>专用 DSP/GPU 模块</td>
+</tr>
+<tr>
+<td>功耗发热</td>
+<td><strong>高</strong></td>
+<td><strong>低</strong></td>
+</tr>
+<tr>
+<td>兼容性</td>
+<td>什么格式都能编</td>
+<td>取决于芯片（<strong>H.264 基本全覆盖，VP8/VP9 编码支持很参差</strong>）</td>
+</tr>
+<tr>
+<td>画质/码率控制</td>
+<td>通常更精细</td>
+<td>相对粗糙、档位少</td>
+</tr>
+</tbody>
+</table>
+<p>本项目相机端是<strong>手机长时间前台推流</strong>，这一项直接决定用户体验：</p>
+<div class="admonition warning">
+<p class="admonition-title">一个值得实测的怀疑（见 07 章 P4）</p>
+<p>本项目<strong>没有指定编码</strong>，走 libwebrtc 默认优先级（VP8 在 H.264 之前），而 <strong>VP8 在移动端通常是软件编码</strong>（硬件编码器一般只做 H.264/HEVC）。
+若属实，相机端会有<strong>不必要的发热与耗电</strong>。验证与改法见 3.3.6 与 07 章 P4。</p>
+</div>
+<h4 id="328">3.2.8 本项目实际在用什么 &amp; 怎么查<a class="headerlink" href="#328" title="Permanent link">&para;</a></h4>
+<p><strong>结论：代码一行都没有指定编码，完全由 libwebrtc 默认 + SDP 协商决定。</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// rephone-security/lib/services/signaling.dart:841-846</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">RTCSessionDescription</span><span class="w"> </span><span class="n">_fixSdp</span><span class="p">(</span><span class="n">RTCSessionDescription</span><span class="w"> </span><span class="n">s</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="c1">// var sdp = s.sdp;</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="c1">// s.sdp =</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="c1">//     sdp!.replaceAll('profile-level-id=640c1f', 'profile-level-id=42e032');</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">s</span><span class="p">;</span><span class="w">   </span><span class="c1">// ← 目前是空壳：直接原样返回，不做任何干预</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">}</span>
+</code></pre></div>
+<p><code>_fixSdp</code> 是工程预留的<strong>唯一干预点</strong>（在 offer <code>:828</code> 与 answer <code>:852</code> 两处都被调用），但目前什么都不做。</p>
+<p><strong>两种查法</strong>（详见 3.3.6）：① 打 SDP 的 <code>m=video</code> 行；② 调 <code>getRtpSenderCapabilities('video')</code>。</p>
+<h3 id="33-sdp">3.3 SDP：编码能力是"怎么约定"的<a class="headerlink" href="#33-sdp" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>状态：🟢 已填充（真实 SDP 样例仍是 TODO）
+这一节回答一个关键问题：<strong>发送方和接收方是怎么知道对方用什么编码、用什么摆放方式的？</strong></p>
+</blockquote>
+<h4 id="331-sdp">3.3.1 SDP 长什么样<a class="headerlink" href="#331-sdp" title="Permanent link">&para;</a></h4>
+<p>SDP（Session Description Protocol，RFC 4566）就是一段<strong>纯文本</strong>的"自我介绍书"，不是传输协议。行格式固定为 <code>x=value</code>：</p>
+<table>
+<thead>
+<tr>
+<th>行</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>v=</code> / <code>o=</code> / <code>s=</code> / <code>t=</code></td>
+<td>版本 / 会话发起者 / 会话名 / 时间</td>
+</tr>
+<tr>
+<td><code>c=</code></td>
+<td>连接信息</td>
+</tr>
+<tr>
+<td><strong><code>m=</code></strong></td>
+<td><strong>媒体行</strong>：<code>m=&lt;媒体类型&gt; &lt;端口&gt; &lt;传输协议&gt; &lt;payload type 列表&gt;</code></td>
+</tr>
+<tr>
+<td><code>a=rtpmap</code></td>
+<td>payload type ↔ 编码格式 的<strong>映射声明</strong></td>
+</tr>
+<tr>
+<td><code>a=fmtp</code></td>
+<td>该编码的<strong>附加参数</strong></td>
+</tr>
+<tr>
+<td><code>a=sendrecv</code> / <code>sendonly</code> / <code>recvonly</code></td>
+<td>媒体方向</td>
+</tr>
+<tr>
+<td><code>a=mid</code></td>
+<td>Unified-Plan 下一条 m-line 的标识</td>
+</tr>
+<tr>
+<td><code>a=ice-ufrag</code> / <code>a=fingerprint</code> …</td>
+<td>ICE 与 DTLS 参数（见 04 章）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Unified-Plan</strong>：一条 <code>m-line</code> = 一个 transceiver（收发器）。本项目 <code>sdpSemantics: 'unified-plan'</code>（<code>signaling.dart:115</code>），现代标准，旧的 <code>plan-b</code> 已废弃。</p>
+<blockquote>
+<p><strong>本项目方向</strong>：相机端发画面（<code>sendonly</code>），监控端收画面；监控端开启对讲时会<strong>重协商</strong>加入麦克风轨（见 <code>setMonitorTalkbackEnabled()</code>，<code>signaling.dart:253-295</code>）。
+⚠️ 注意 offer 里 <code>OfferToReceiveAudio/Video: true</code> 声明的是"<strong>我想收</strong>"，不是"我能发"。</p>
+</blockquote>
+<h4 id="332-payload-type">3.3.2 核心机制：payload type 映射表<a class="headerlink" href="#332-payload-type" title="Permanent link">&para;</a></h4>
+<p>这是"怎么约定"的真正答案。<strong>RTP 包头里只有 7 bit 的 Payload Type 字段（0~127）</strong>，双方要做的就是约定好"几号 = 什么编码"这张表：</p>
+<ul>
+<li><strong>0~95 静态编号</strong>（IANA 固定分配，如 0 = PCMU 音频）——视频基本没分到静态号</li>
+<li><strong>96~127 动态编号</strong>——<strong>必须</strong>由 SDP 临时声明含义</li>
+</ul>
+<p>一段真实的 video m-line：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>m=video 9 UDP/TLS/RTP/SAVPF 96 97 98 99 100 101 102
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>                             ↑ 顺序 = 优先级，越靠前越想要
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>a=rtpmap:96 VP8/90000
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>a=rtpmap:97 rtx/90000
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>a=rtpmap:98 H264/90000
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>a=fmtp:98 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>a=rtpmap:100 VP9/90000
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>a=rtpmap:102 red/90000
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>行</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>96 97 98 …</code></td>
+<td>本端<strong>支持的所有</strong> payload type，<strong>按偏好排序</strong></td>
+</tr>
+<tr>
+<td><code>a=rtpmap:96 VP8/90000</code></td>
+<td>96 号 = VP8，时钟 <strong>90000 Hz</strong>（视频固定 90 kHz）</td>
+</tr>
+<tr>
+<td><code>a=rtpmap:98 H264/90000</code></td>
+<td>98 号 = H.264</td>
+</tr>
+<tr>
+<td><code>rtx</code> / <code>red</code> / <code>ulpfec</code></td>
+<td>重传 / 冗余 / 前向纠错的辅助"编码"（可靠性产物，不是原始数据）</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>协商只做一次（握手时传 SDP），此后每个 RTP 包只用 7 bit 说自己是几号</strong>，接收方查表交给对应解码器——这就是为什么实时传输不需要每包带冗长的格式描述。</p>
+</blockquote>
+<h4 id="333-offeranswer-rfc-3264webrtc-jsep-rfc-8829">3.3.3 offer/answer 协商规则（RFC 3264；WebRTC 走 JSEP RFC 8829）<a class="headerlink" href="#333-offeranswer-rfc-3264webrtc-jsep-rfc-8829" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>① 发起方 offer  : 列出自己支持的所有 codec，按偏好排序
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>② 应答方 answer : 只能从 offer 的列表里挑自己支持的
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>                  ✗ 不能引入 offer 里没有的 codec
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>                  ✓ 可以裁剪掉自己不支持的
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>                  ✓ 可以重排顺序，表达自己的偏好
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>③ 最终生效      : 取 answer 里排在最前面的那个
+</code></pre></div>
+<p><strong>真正的双向对话</strong>，且 answer 可以"降级"——这正是跨设备兼容性的来源。</p>
+<h4 id="334-fmtp">3.3.4 <code>fmtp</code> 里唯一被协商的"打包细节"<a class="headerlink" href="#334-fmtp" title="Permanent link">&para;</a></h4>
+<p>Annex-B vs AVCC <strong>从不协商</strong>（由容器规范写死，见 3.2.6）。但 RTP 有一个<strong>真正需要协商</strong>的打包参数：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>a=fmtp:98 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>packetization-mode</code></strong></td>
+<td><strong>0</strong> = 只允许 Single NALU（大帧发不出去，基本不可用）<br><strong>1</strong> = 允许 <strong>FU-A 分片 + STAP-A 聚合</strong>（实际必选）</td>
+</tr>
+<tr>
+<td><strong><code>profile-level-id</code></strong></td>
+<td>H.264 的 profile/level（如 <code>42e01f</code> = Baseline Level 3.1）。<strong>两端必须匹配</strong>，否则可能协商失败或解码异常</td>
+</tr>
+<tr>
+<td><code>level-asymmetry-allowed=1</code></td>
+<td>允许收发使用不同 level（如发 720p、收 480p）</td>
+</tr>
+<tr>
+<td><code>sprop-parameter-sets</code></td>
+<td>base64 的 SPS/PPS，<strong>带外</strong>提前告知（也可改用 STAP-A 带内发送，中途重连更可靠）</td>
+</tr>
+</tbody>
+</table>
+<h4 id="335">3.3.5 设备怎么知道"我支持什么"？（三层叠加）<a class="headerlink" href="#335" title="Permanent link">&para;</a></h4>
+<p>这是个高频疑问。答案是<strong>三层共同决定，WebRTC 只规定最底下那层</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>谁决定</th>
+<th>决定什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>① 标准下限</strong></td>
+<td><strong>RFC 7742</strong>（视频）/ RFC 7874（音频）</td>
+<td>WebRTC 实现<strong>必须</strong>支持 <strong>VP8 + H.264 Constrained Baseline</strong>；音频必须支持 <strong>Opus + G.711</strong>。这是<strong>互通性兜底</strong>，不禁止支持更多</td>
+</tr>
+<tr>
+<td><strong>② 编译全集</strong></td>
+<td><strong>libwebrtc 的 GN 编译开关</strong>（<code>rtc_use_h264</code> / <code>rtc_libvpx_build_vp9</code> / <code>rtc_enable_av1</code>）+ 预编译产物版本</td>
+<td>编解码器是<strong>编进 .so / .framework</strong> 的，版本锁死则全集固定</td>
+</tr>
+<tr>
+<td><strong>③ 运行时子集</strong></td>
+<td><strong>查询平台硬件</strong></td>
+<td>Android 用 <code>MediaCodecList</code> 按 MIME 枚举（<code>MIMETYPE_VIDEO_AVC/HEVC/VP8/VP9/AV1</code>）；iOS 用 VideoToolbox（H.264 全系硬编，HEVC 需 A10+）。硬件不支持则回落软编或不可用</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">推论：同一份 Flutter 代码，在不同手机上生成的 SDP 可能不一样</p>
+<p>第 ③ 层是设备相关的。所以<strong>不能靠推理断定"本项目一定在用什么编码"，必须运行时实测</strong>。</p>
+</div>
+<blockquote>
+<p>⚠️ <strong>H.264 的历史包袱</strong>：开源 libwebrtc <strong>默认不自带 H.264</strong>（专利 + 需链接 OpenH264/FFmpeg），必须显式开 <code>rtc_use_h264=true</code>。
+本项目用的是 flutter-webrtc 维护的<strong>预编译产物</strong>（Android <code>io.github.webrtc-sdk:android:150.7871.01</code>，<code>android/app/build.gradle:122</code>；iOS 同版本 CocoaPods），一般已启用——但<strong>这点必须实测确认</strong>，不能想当然。</p>
+</blockquote>
+<h4 id="336">3.3.6 本项目：协商在哪里发生、怎么观测、怎么改<a class="headerlink" href="#336" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>signaling.dart:641-644  createPeerConnection({iceServers + sdpSemantics})
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>                        ↑ 只传了 ICE 与 SDP 语义，没有任何 codec 参数
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>      ↓  MethodChannel → native
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>libwebrtc PeerConnectionFactory
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>      ├─ ① 查编译产物里的编解码器全集（版本 150.7871.01 锁死）
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>      └─ ② 查运行时硬件能力（MediaCodec / VideoToolbox）
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>      ↓  合成 RtpCapabilities
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>生成 SDP offer: m=video 9 UDP/TLS/RTP/SAVPF 96 97 98 ...
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>      ↓
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>_fixSdp(s)  ← 唯一干预点（signaling.dart:841-846，目前是空函数）
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>      ↓
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>:828 setLocalDescription → :829 _send('offer') → WebSocket → 对端
+</code></pre></div>
+<p><strong>观测方法 A：打印 SDP</strong>（最可靠）</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">// signaling.dart:841-846 临时改造成这样</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">RTCSessionDescription</span><span class="w"> </span><span class="n">_fixSdp</span><span class="p">(</span><span class="n">RTCSessionDescription</span><span class="w"> </span><span class="n">s</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="kd">final</span><span class="w"> </span><span class="n">lines</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">sdp</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="s1">''</span><span class="p">).</span><span class="n">split</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">).</span><span class="n">where</span><span class="p">((</span><span class="n">l</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">      </span><span class="n">l</span><span class="p">.</span><span class="n">startsWith</span><span class="p">(</span><span class="s1">'m=video'</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">l</span><span class="p">.</span><span class="n">startsWith</span><span class="p">(</span><span class="s1">'a=rtpmap'</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">l</span><span class="p">.</span><span class="n">startsWith</span><span class="p">(</span><span class="s1">'a=fmtp'</span><span class="p">));</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="n">LogUtils</span><span class="p">.</span><span class="n">i</span><span class="p">(</span><span class="s1">'Signaling'</span><span class="p">,</span><span class="w"> </span><span class="s1">'SDP codecs:</span><span class="se">\n</span><span class="si">${</span><span class="n">lines</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span><span class="si">}</span><span class="s1">'</span><span class="p">);</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">s</span><span class="p">;</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="p">}</span>
+</code></pre></div>
+<p>配合 <code>pull_logs.sh</code>，看 <code>m=video</code> 行第一个数字对应哪个 <code>rtpmap</code>，那就是<strong>实际在用</strong>的编码。</p>
+<p><strong>观测方法 B：查能力</strong>（<code>flutter_webrtc</code> 1.6.0 已导出顶层函数，<code>$PUB/lib/src/native/factory_impl.dart:105-111</code>）</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">import</span><span class="w"> </span><span class="s1">'package:flutter_webrtc/flutter_webrtc.dart'</span><span class="p">;</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="kd">final</span><span class="w"> </span><span class="n">send</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kd">await</span><span class="w"> </span><span class="n">getRtpSenderCapabilities</span><span class="p">(</span><span class="s1">'video'</span><span class="p">);</span><span class="w">   </span><span class="c1">// 本端能"编码发送"什么</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="kd">final</span><span class="w"> </span><span class="n">recv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kd">await</span><span class="w"> </span><span class="n">getRtpReceiverCapabilities</span><span class="p">(</span><span class="s1">'video'</span><span class="p">);</span><span class="w"> </span><span class="c1">// 本端能"解码接收"什么</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">final</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">send</span><span class="p">.</span><span class="n">codecs</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="p">[])</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="n">LogUtils</span><span class="p">.</span><span class="n">i</span><span class="p">(</span><span class="s1">'Codec'</span><span class="p">,</span><span class="w"> </span><span class="s1">'SEND </span><span class="si">${</span><span class="n">c</span><span class="p">.</span><span class="n">mimeType</span><span class="si">}</span><span class="s1"> clock=</span><span class="si">${</span><span class="n">c</span><span class="p">.</span><span class="n">clockRate</span><span class="si">}</span><span class="s1"> fmtp=</span><span class="si">${</span><span class="n">c</span><span class="p">.</span><span class="n">sdpFmtpLine</span><span class="si">}</span><span class="s1">'</span><span class="p">);</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="p">}</span>
+</code></pre></div>
+<blockquote>
+<p>⚠️ <strong>send 与 recv 可能不对称</strong>：编码能力往往<strong>弱于</strong>解码能力（如某机型能硬解 VP9 但不能硬编 VP9）。</p>
+</blockquote>
+<p><strong>怎么改</strong>（若确认要锁定 H.264）：</p>
+<ol>
+<li><strong>SDP 过滤</strong>（跨端行为最可控）：在 <code>_fixSdp</code> 里删掉 <code>m=video</code> 行中 VP8/VP9 的 payload type，并同步删除对应 <code>rtpmap</code>/<code>fmtp</code> 行。</li>
+<li><strong><code>setCodecPreferences</code></strong>（API 更干净）：用 <code>addTransceiver</code> 拿到 transceiver 后设置偏好——<code>$PUB/lib/src/native/rtc_rtp_transceiver_impl.dart:172</code>。</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kd">await</span><span class="w"> </span><span class="n">transceiver</span><span class="p">.</span><span class="n">setCodecPreferences</span><span class="p">([</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="n">RTCRtpCodecCapability</span><span class="p">(</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="nl">mimeType:</span><span class="w"> </span><span class="s1">'video/H264'</span><span class="p">,</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="nl">clockRate:</span><span class="w"> </span><span class="m">90000</span><span class="p">,</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="nl">sdpFmtpLine:</span><span class="w"> </span><span class="s1">'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f'</span><span class="p">,</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="p">),</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="p">]);</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">两端都要改</p>
+<p>answer 方不能接受 offer 里没有的 codec。只改一端会协商失败或仍然按对端偏好选。
+<strong>好消息</strong>：本项目两端是同一 App + 同一 SDK 版本，第 ② 层"全集"完全一致，差异只来自第 ③ 层硬件；而 RFC 7742 保证 H.264 必被支持，所以两端同时锁定 H.264 是安全的。</p>
+</div>
+<blockquote>
+<p>调试期还可用 <code>WebRTC.initialize(options: {'forceSWCodec': true, 'forceSWCodecList': ['VP8','H264']})</code> 强制走软编，对比硬/软编的发热与画质差异（见 <code>$PUB/lib/src/native/utils.dart:47-63</code>）。</p>
+</blockquote>
+<h3 id="34-rtp-rtcp">3.4 RTP / RTCP：媒体怎么在网络上跑<a class="headerlink" href="#34-rtp-rtcp" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>状态：🟢 已填充</p>
+</blockquote>
+<h4 id="341-rtp-7-bit">3.4.1 RTP 头：7 bit 说清"我是什么编码"<a class="headerlink" href="#341-rtp-7-bit" title="Permanent link">&para;</a></h4>
+<p>RTP（RFC 3550）跑在 UDP 上，<strong>每个包只负责搬运，不管重传、不管顺序</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>┌─ RTP 头 ────────────────────────────────┬─ RTP 载荷 ─────────┐
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>│ PT=98 │ seq │ timestamp │ SSRC │ marker │  编码后的 NALU 数据 │
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>└─────────────────────────────────────────┴────────────────────┘
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Payload Type（7 bit）</strong></td>
+<td>编码格式代号 → 查 SDP 建的表</td>
+</tr>
+<tr>
+<td><strong>Sequence Number</strong></td>
+<td><strong>重排序</strong>（UDP 会乱序）+ 检测丢包</td>
+</tr>
+<tr>
+<td><strong>Timestamp</strong></td>
+<td>采样时刻 → 接收端用 <strong>jitter buffer</strong> 按正确节奏播放，消除网络抖动</td>
+</tr>
+<tr>
+<td><strong>SSRC</strong></td>
+<td>同步源标识 → 区分多路流</td>
+</tr>
+<tr>
+<td><strong>Marker bit</strong></td>
+<td>视频里常用来标"这是一帧的最后一个包"</td>
+</tr>
+</tbody>
+</table>
+<p>同一帧的多个 FU-A 包<strong>共用同一个 timestamp</strong>（90 kHz），接收端据此拼回一帧。</p>
+<h4 id="342-rtcprtp">3.4.2 RTCP：质量反馈（RTP 的孪生兄弟，必须配套）<a class="headerlink" href="#342-rtcprtp" title="Permanent link">&para;</a></h4>
+<p>RTCP 周期性互发<strong>收发报告</strong>：丢了多少包、抖动多大、往返时延多少。发送端据此做<strong>拥塞控制</strong>与<strong>码率自适应</strong>——网络差了就降码率。</p>
+<blockquote>
+<p>这就是 WebRTC 能做到"不卡"的核心机制。本项目完全交给 libwebrtc，代码不感知。</p>
+</blockquote>
+<p>RTCP 不止"汇报丢包"，两类报文分工不同：</p>
+<table>
+<thead>
+<tr>
+<th>报文</th>
+<th>谁发</th>
+<th>内容</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SR</strong>（Sender Report）</td>
+<td>发送端</td>
+<td>发包数/字节数 <strong>+ NTP 时间戳与对应 RTP 时间戳的配对</strong></td>
+<td>① 算 RTT / 速率；② <strong>音画同步的基准</strong>（见 3.4.8）</td>
+</tr>
+<tr>
+<td><strong>RR</strong>（Receiver Report）</td>
+<td>接收端</td>
+<td>丢包率、抖动 jitter、收到的最高序号</td>
+<td>驱动 BWE 与重传决策</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition important">
+<p class="admonition-title">SR 里的 NTP ↔ RTP 配对是全章最关键的一处伏笔</p>
+<p>RTP 头里的 timestamp <strong>不能直接跨流比较</strong>（时钟频率不同、起点随机），只有 SR 把"RTP 时间戳"锚定到"绝对墙钟 NTP"之后，音视频才有了<strong>共同的时间轴</strong>——这是 3.4.8 音画同步的地基。
+另有一批带反馈语义的 RTCP 报文：<strong>NACK</strong>（要重传）、<strong>PLI / FIR</strong>（要关键帧）、<strong>REMB / TWCC</strong>（带宽估计）、<strong>SDES</strong>（CNAME，多路流归组用）。</p>
+</div>
+<h4 id="343">3.4.3 抗丢包三板斧<a class="headerlink" href="#343" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>做法</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>NACK</strong>（重传）</td>
+<td>接收端发现丢包 → 请求重发</td>
+<td>增加延迟（至少 1 RTT）</td>
+</tr>
+<tr>
+<td><strong>FEC</strong>（前向纠错）</td>
+<td>多发冗余包，丢了也能算回来</td>
+<td>多占带宽</td>
+</tr>
+<tr>
+<td><strong>码率自适应（BWE）</strong></td>
+<td>探测带宽 → 动态降码率/分辨率/帧率</td>
+<td>画质下降</td>
+</tr>
+</tbody>
+</table>
+<p>另有 <strong>RED</strong>（音频冗余）、<strong>RTX</strong>（重传专用流）。它们在 SDP 里也是"编码"（见 3.3.2 的 <code>rtx</code>/<code>red</code>）。</p>
+<h4 id="344-rtsp-rtmp-hls">3.4.4 横向对比：RTSP / RTMP / HLS 为什么没被本项目采用<a class="headerlink" href="#344-rtsp-rtmp-hls" title="Permanent link">&para;</a></h4>
+<p>同为"流媒体方案"，对比一下才能理解为什么 WebRTC 选了 RTP/SRTP：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>RTSP + RTP</strong></th>
+<th><strong>RTMP</strong></th>
+<th><strong>HLS</strong></th>
+<th><strong>WebRTC（本项目）</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>控制/信令</td>
+<td>RTSP（TCP 554，文本命令）</td>
+<td>自带 AMF 命令</td>
+<td>HTTP 请求</td>
+<td><strong>自定义（本项目用 WSS）</strong></td>
+</tr>
+<tr>
+<td>协商</td>
+<td>SDP via <code>DESCRIBE</code></td>
+<td>自带握手</td>
+<td>m3u8 索引</td>
+<td><strong>SDP via offer/answer</strong></td>
+</tr>
+<tr>
+<td>数据面</td>
+<td>RTP（明文，UDP）</td>
+<td>自带 chunk 封装</td>
+<td>HTTP 分片文件</td>
+<td><strong>SRTP（RTP + DTLS 加密）</strong></td>
+</tr>
+<tr>
+<td>传输层</td>
+<td>UDP（可 TCP 交织）</td>
+<td><strong>TCP 1935</strong></td>
+<td>TCP 80/443</td>
+<td>UDP（失败退化 TCP/TURN）</td>
+</tr>
+<tr>
+<td>穿透 NAT</td>
+<td>无（靠端口映射）</td>
+<td>友好（TCP）</td>
+<td>友好</td>
+<td><strong>ICE / STUN / TURN</strong></td>
+</tr>
+<tr>
+<td>延迟</td>
+<td>亚秒~秒级</td>
+<td>1~5 秒</td>
+<td><strong>10 秒+</strong></td>
+<td><strong>亚秒级</strong></td>
+</tr>
+<tr>
+<td>抗弱网</td>
+<td>好</td>
+<td>差（TCP 队头阻塞）</td>
+<td>好（可缓冲）</td>
+<td><strong>好（NACK/FEC/BWE）</strong></td>
+</tr>
+<tr>
+<td>典型场景</td>
+<td><strong>安防 IPC、视频会议</strong></td>
+<td>直播<strong>推流</strong>（播放侧已淘汰）</td>
+<td>大规模直播分发</td>
+<td>实时互动、P2P 监控</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RTSP 与 RTP 是什么关系？</strong>——<strong>不是包含关系，是"控制面 + 数据面"的搭档</strong>：</p>
+<ul>
+<li><strong>RTSP = 遥控器</strong>（控制面）：发 <code>OPTIONS / DESCRIBE / SETUP / PLAY / PAUSE / TEARDOWN</code>，<strong>一个字节的视频数据都不传</strong></li>
+<li><strong>RTP = 线缆</strong>（数据面）：真正搬运音视频包</li>
+</ul>
+<p>它们<strong>可以分开使用</strong>：WebRTC 里有 RTP 但没有 RTSP；SIP 电话是 RTP + SIP。反过来 RTSP 也几乎总是配 RTP。</p>
+<p><strong>RTMP 为什么 Adobe 要自己重造一套？</strong></p>
+<p>2000 年代初的替代品都不行：HTTP 渐进下载不支持直播；RTP/RTSP 走 <strong>UDP</strong>，企业防火墙大面积封堵，部署成本极高。于是 Adobe 全部自研，换来：</p>
+<table>
+<thead>
+<tr>
+<th>优势</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>走 TCP</strong></td>
+<td>防火墙只需放行 1935（甚至 80/443），部署零成本</td>
+</tr>
+<tr>
+<td><strong>Chunk Stream 分块复用</strong></td>
+<td>一条 TCP 连接虚拟成多条流（控制/音频/视频），<strong>音视频块交错发送</strong>，避免音频被大 I 帧堵住；块头最少 <strong>1 字节</strong></td>
+</tr>
+<tr>
+<td><strong>真正的"推流"语义</strong></td>
+<td><code>publish</code> / <code>play</code> 语义清晰，天然适合上行采集 + 服务器分发</td>
+</tr>
+<tr>
+<td><strong>内带元数据</strong></td>
+<td>AMF 传 <code>onMetaData</code>（分辨率/帧率/码率），客户端不用解析码流</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">今天的现实地位</p>
+<p><strong>推流侧 RTMP 仍是事实标准</strong>（OBS/FFmpeg/CDN 全支持）；<strong>播放侧已随 Flash 消亡</strong>，被 HLS / HTTP-FLV 取代。
+<strong>本质取舍</strong>：UDP 系哲学是"过时的包不如不要"（宁可丢也要实时）；TCP 系哲学是"一个都不能少"（宁可等也要完整）。</p>
+</div>
+<p><strong>本项目为什么不用它们？</strong></p>
+<ol>
+<li><strong>要亚秒级延迟</strong>（安防监控看实时画面）；</li>
+<li><strong>两端都是自己的 App</strong>，用 WebRTC 可<strong>P2P 直连、媒体不过服务器</strong>，省带宽成本；</li>
+<li>自带 <strong>ICE/TURN 穿透</strong>，无需端口映射；</li>
+<li><strong>SRTP 强制加密</strong>，安防场景必需；</li>
+<li>需要 <strong>DataChannel</strong> 复用同一条连接传控制消息与录像文件（见 3.6）。
+   → 换成 RTSP/RTMP 是<strong>明显的技术倒退</strong>。</li>
+</ol>
+<h4 id="345-wi-fi">3.4.5 本项目的通话质量为什么有时受 Wi-Fi 波动影响大<a class="headerlink" href="#345-wi-fi" title="Permanent link">&para;</a></h4>
+<p>结合 3.4.3 理解：Wi-Fi 丢包 → RTCP 上报 → BWE 降码率 → 画面变糊（而不是卡死）。若丢包集中且 NACK 来不及，就会出现<strong>短时马赛克/花屏</strong>（关键帧之间的 P 帧依赖断了，要等下一个 I 帧才能恢复）。</p>
+<ul>
+<li>缓解方向：缩短关键帧间隔、开 FEC、或让相机端在弱网下主动降分辨率（见 09 章 9.3.4）。</li>
+<li>本项目目前<strong>未开启 simulcast</strong>（<code>signaling.dart:673-715</code> 有一段现成的三档模板注释，启用后弱网可自动降档）。</li>
+</ul>
+<h4 id="346">3.4.6 发送端：音视频是"两个打包器"，不是"两台发射机"<a class="headerlink" href="#346" title="Permanent link">&para;</a></h4>
+<blockquote>
+<p>常见误解：看到 <code>RTPSenderVideo</code> / <code>RTPSenderAudio</code> 就以为有两台并列的发射机。
+准确说法：<strong>它们是 <code>RtpSender</code> 内部的两个打包器（packetizer）</strong>。</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>pc.addTrack(videoTrack) ─► RtpTransceiver#1 ─► RtpSender(video) ─┐
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>                                                  └─ 内部 RTPSenderVideo
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>pc.addTrack(audioTrack) ─► RtpTransceiver#2 ─► RtpSender(audio) ─┐
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>                                                  └─ 内部 RTPSenderAudio
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>                                  ↓ 两个 sender 汇聚到
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>                    同一个 RtpTransport（BUNDLE：一条 ICE/DTLS 通道、一个 socket、一套 SRTP 密钥）
+</code></pre></div>
+<ul>
+<li><strong>轨道层</strong>：几条 track → 几个 transceiver → 几个 sender（本项目就是 2 条：audio + video）；</li>
+<li><strong>传输层</strong>：所有 sender <strong>共用同一条通道</strong>，靠 <strong>SSRC / mid / PayloadType</strong> 区分——这叫<strong>复用（multiplexing）</strong>，不是两条物理通道。</li>
+</ul>
+<p>为什么要分成两个打包器？因为三件事完全不同：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>RTPSenderVideo</code></th>
+<th><code>RTPSenderAudio</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>时间戳时钟</td>
+<td><strong>固定 90 kHz</strong>（与帧率无关）</td>
+<td><strong>采样率</strong>（Opus 48 kHz）</td>
+</tr>
+<tr>
+<td>一帧 ↔ 几个包</td>
+<td>一帧常拆 N 个包（H.264 用 <strong>FU-A</strong> 分片，≤ MTU ~1200B；同一帧共用同一 timestamp，末包置 marker）</td>
+<td><strong>一帧一包</strong>（Opus 20 ms 约几十~几百字节）</td>
+</tr>
+<tr>
+<td>分包依据</td>
+<td>RFC 6184（H.264）/ 7741（VP8）/ 7742</td>
+<td>RFC 7587（Opus）</td>
+</tr>
+<tr>
+<td>丢了怎么办</td>
+<td>接收端发 <strong>PLI / FIR</strong> 要关键帧；RTX 重传、ULPFEC</td>
+<td><strong>NACK 重传 + RED 冗余 + in-band FEC</strong></td>
+</tr>
+<tr>
+<td>省流机制</td>
+<td>无（<code>enabled=false</code> 时改为发黑帧，包照发）</td>
+<td><strong>DTX</strong>：静音期停发，只发少量 CNG</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">一个反直觉的点</p>
+<p>视频时间戳时钟<strong>恒为 90 kHz，与帧率无关</strong>：30fps 时每帧 <code>+3000</code>，不是 <code>+1</code>。音频则用采样率（48 kHz）。
+这也是为什么两条流的 timestamp <strong>数值上完全不可比</strong>——见 3.4.8。</p>
+</div>
+<p>一句话概括：<strong>视频"分片 + 可丢 + 靠关键帧恢复"，音频"整帧 + 冗余 + 绝不断流"</strong>。</p>
+<h4 id="347">3.4.7 接收端：解复用之后，两条路走完全不同的容错哲学<a class="headerlink" href="#347" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>UDP socket
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>   ↓ SRTP 解密
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>RtpDemuxer（按 SSRC / mid / PayloadType 解复用）          ← 音视频在这一层才被分开
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>   ↓                                    ↓
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>RTPReceiverVideo                    RTPReceiverAudio
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>   ↓                                    ↓
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>按 seq + timestamp 组帧                NetEq
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>   ↓                                    ↓
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>FrameBuffer（等帧 / 排序 / 判过期）     抖动自适应 + PLC + 变速(time-stretch) + 解码
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>   ↓                                    ↓
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>VideoDecoder（硬解）                   PCM → ADM（AudioTrack / AudioUnit）播放
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>   ↓
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>VideoFrame → VideoSink 广播 → Flutter textureId（3.5）
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>视频</th>
+<th>音频</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>缓冲器</td>
+<td><code>FrameBuffer</code></td>
+<td><strong><code>NetEq</code></strong>（WebRTC 音频最核心的算法）</td>
+</tr>
+<tr>
+<td>抖动变大</td>
+<td>多等一会儿 → 延迟上升（画面顿一下但连续）</td>
+<td>自动加大缓冲 → 延迟上升（宁可延迟，不能破音）</td>
+</tr>
+<tr>
+<td>丢包</td>
+<td>等下一个 I 帧（短时花屏 / 马赛克）</td>
+<td><strong>PLC</strong> 合成一段（轻微失真，不断流）</td>
+</tr>
+<tr>
+<td>缓冲空了 / 积压</td>
+<td><strong>丢帧</strong>保流畅</td>
+<td><strong>变速播放</strong>（轻微加减速，不变调）</td>
+</tr>
+<tr>
+<td>能不能丢</td>
+<td><strong>能</strong>（帧可丢）</td>
+<td><strong>不能</strong>（一帧都不能丢）</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title"><code>NetEq</code> 是什么</p>
+<p>它一个模块干四件事：<strong>抖动缓冲 + 丢包补偿(PLC) + 解码 + 变速不变调(time-stretch)</strong>。
+"音频为什么听起来永远连续、而视频会卡一下"——答案就在这里：音频用<strong>时间换连续</strong>，视频用<strong>丢帧换实时</strong>。</p>
+</div>
+<h4 id="348-rtp-timestamp">3.4.8 音画同步：不是"对齐 RTP timestamp"<a class="headerlink" href="#348-rtp-timestamp" title="Permanent link">&para;</a></h4>
+<p><strong>先破除误解</strong>：同步<strong>不是</strong>把两条流的 RTP timestamp 对齐。因为</p>
+<ol>
+<li>视频时钟 90 kHz、音频 48 kHz，<strong>单位不同</strong>；</li>
+<li>RFC 3550 要求 timestamp <strong>起点随机</strong>，两条流的零点毫无关系。</li>
+</ol>
+<p>所以"视频 ts=90000"与"音频 ts=48000"<strong>完全不可比</strong>。真正的同步靠三件套：</p>
+<p><strong>① RTCP SR 提供 NTP ↔ RTP 的翻译（见 3.4.2）</strong></p>
+<p>发送端周期性在 SR 里同时给出「绝对墙钟 NTP」和「同一时刻的 RTP timestamp」。接收端为每个 SSRC 维护这个映射，把两条流的 RTP 时间戳<strong>都换算到同一条 NTP 时间轴</strong>上——这时才能问出"这一帧画面和这一段声音是不是同一时刻采集的"。</p>
+<p><strong>② SDP 用 <code>a=group:LS</code> 声明"这俩要同步"</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>a=group:LS 0 1     ← Lip Sync 组：mid 0 与 mid 1 需互相同步
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>a=mid:0            (video)
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>a=mid:1            (audio)
+</code></pre></div>
+<p>没有这行声明，接收端就不知道该把哪两条流对齐（多路摄像头 / 屏幕共享场景尤其关键）。</p>
+<p><strong>③ 真正执行同步的是"播放调度"，而且只调音频</strong></p>
+<p>libwebrtc 由 <code>RtpStreamsSynchronizer</code> + <code>StreamSynchronization</code> 完成：</p>
+<ol>
+<li>把视频当前正在播放的帧换算成 NTP → <code>video_playout_ntp</code>；</li>
+<li>同样算出 <code>audio_playout_ntp</code>；</li>
+<li>相减得到<strong>相对偏差</strong> <code>relative_delay</code>（视频比音频快/慢多少 ms）；</li>
+<li><strong>把偏差作为 <code>extra_delay_ms</code> 交给 NetEq，让音频多缓冲 / 少缓冲去追视频</strong>——<strong>视频侧不动</strong>。</li>
+</ol>
+<div class="admonition question">
+<p class="admonition-title">为什么只调音频，不调视频？</p>
+<p>视频帧是离散的（30fps = 33 ms 一跳），调整粒度太粗，动一下就有肉眼可见的顿挫；
+而音频可以用 NetEq 的 time-stretch 做<strong>亚毫秒级、听感无变化</strong>的平滑加减速。
+→ <strong>音画同步的代价，是全部记在音频延迟头上的。</strong></p>
+</div>
+<p>还有两个防抖设计：</p>
+<ul>
+<li><strong>死区</strong>：偏差在 ±~80 ms 内视作"已同步"，不动（否则会来回抖）；</li>
+<li><strong>限速</strong>：每帧调整量有上限，防止音频加速到明显变调。</li>
+</ul>
+<p><strong>本项目对应</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1">// signaling.dart:656-664</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="n">pc</span><span class="p">.</span><span class="n">onTrack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">event</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="n">streams</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="p">;</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="kd">final</span><span class="w"> </span><span class="n">stream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">event</span><span class="p">.</span><span class="n">streams</span><span class="p">[</span><span class="m">0</span><span class="p">];</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="n">track</span><span class="p">.</span><span class="n">kind</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'video'</span><span class="p">)</span><span class="w">      </span><span class="n">onAddRemoteStream</span><span class="o">?</span><span class="p">.</span><span class="n">call</span><span class="p">(</span><span class="n">newSession</span><span class="p">,</span><span class="w"> </span><span class="n">stream</span><span class="p">);</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">  </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">event</span><span class="p">.</span><span class="n">track</span><span class="p">.</span><span class="n">kind</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'audio'</span><span class="p">)</span><span class="w"> </span><span class="n">onAddRemoteAudioStream</span><span class="o">?</span><span class="p">.</span><span class="n">call</span><span class="p">(</span><span class="n">newSession</span><span class="p">,</span><span class="w"> </span><span class="n">stream</span><span class="p">);</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="p">};</span>
+</code></pre></div>
+<p><code>event.streams[0]</code> 说明远端的 audio 与 video <strong>属于同一个 <code>MediaStream</code></strong>（即 SDP 里那个 <code>LS</code> 组）。<strong>只要当同一条流消费，libwebrtc 自动完成同步，业务代码什么都不用做。</strong></p>
+<div class="admonition warning">
+<p class="admonition-title">四个会破坏同步的写法</p>
+<ol>
+<li><strong>自己给视频加缓冲</strong>（为了"去抖"攒几帧再显示）= 在已算好的对齐之外又加延迟，音画必然分离；</li>
+<li><strong>把音视频拆成两条流分别处理</strong>、或让它们走不同的播放路径，会丢掉 <code>LS</code> 组关系；</li>
+<li><strong>长时间 <code>enabled=false</code> / DTX 静默</strong>：时间戳还在走但内容无效（黑帧/静音），同步基准会漂；</li>
+<li><strong>视频渲染器与音频播放设备本就不同源</strong>（屏幕刷新 vs 声卡时钟），任何额外的中间处理都会放大漂移。</li>
+</ol>
+</div>
+<p><strong>排查顺序</strong>：先分清是网络问题还是渲染问题 —— 看 <code>getStats()</code> 里 inbound-rtp 的：</p>
+<ul>
+<li>音频侧 <code>jitterBufferDelay</code> 异常高 → NetEq 一直在扛抖动，<strong>延迟就是这样被吃掉的</strong>；</li>
+<li>视频侧 <code>packetsLost</code> 高 → 在等 I 帧（表现为花屏而非音画不同步）；</li>
+<li>两者都正常却仍不同步 → 回头查上面 1、2 两条。</li>
+</ul>
+<hr />
+<h3 id="35-mediastream">3.5 远端流渲染：从 <code>MediaStream</code> 句柄到屏幕上的一帧<a class="headerlink" href="#35-mediastream" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>状态：🟢 已填充
+对应代码：<code>rephone-security/lib/pages/monitor_viewer_page.dart</code>、<code>rephone-security/lib/services/signaling.dart</code>；<code>flutter_webrtc</code> 原生侧
+下文用 <code>$PUB</code> 代指 <code>~/.pub-cache/hosted/pub.flutter-io.cn/flutter_webrtc-1.6.0</code>。</p>
+</blockquote>
+<p><strong>一句话结论：Dart 侧的 <code>MediaStream</code> 只是一个「查表用的句柄」，真正被渲染的是原生 libwebrtc 里的 <code>VideoTrack</code>；渲染器唯一的绑定点是 <code>videoTrack.addSink(renderer)</code>。</strong></p>
+<p>链路总览：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>_monitor_viewer_page.dart:32   RTCVideoRenderer()        ← 纯 Dart 对象，还没有任何原生资源
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>        │
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>        ├─ :87  initialize() ──MethodChannel──► createVideoRenderer
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>        │        Android: textures.createSurfaceProducer() → producer.id() 即 textureId
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>        │                 + new FlutterRTCVideoRenderer(producer)
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>        │                 + new SurfaceTextureRenderer（extends EglRenderer）
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>        │        iOS:     [registry registerTexture:self] → textureId
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>        │      ◄──── {'textureId': 7} + 订阅 EventChannel('FlutterWebRTC/Texture7')
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>        │
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>        ├─ :686 RTCVideoView(_remoteRenderer) → Flutter 的 Texture(textureId: 7) 挂进 widget 树
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>        │
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>        ├─ :111 _remoteRenderer.srcObject = stream ──► videoRendererSetSrcObject(streamId, ownerTag)
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>        │        → 查表找到 MediaStream → videoTracks[0] → videoTrack.addSink(renderer)   ★ 唯一绑定点
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>        │
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>        └─ 帧到达：解码线程 → Renderer.onFrame() → 画进 producer 的 Surface → 引擎合成上屏
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>                          └─ 顺带上报「首帧 / 分辨率 / 旋转」→ Dart 侧 ValueNotifier → widget 自动重排
+</code></pre></div>
+<h4 id="351-dart-mediastream">3.5.1 先破除误解：Dart 的 <code>MediaStream</code> 里没有任何像素<a class="headerlink" href="#351-dart-mediastream" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1">// $PUB/lib/src/native/media_stream_impl.dart</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="kd">class</span><span class="w"> </span><span class="nc">MediaStreamNative</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">MediaStream</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">  </span><span class="n">MediaStreamNative</span><span class="p">(</span><span class="k">super</span><span class="p">.</span><span class="n">streamId</span><span class="p">,</span><span class="w"> </span><span class="k">super</span><span class="p">.</span><span class="n">ownerTag</span><span class="p">);</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">  </span><span class="kd">factory</span><span class="w"> </span><span class="n">MediaStreamNative</span><span class="p">.</span><span class="n">fromMap</span><span class="p">(</span><span class="n">Map</span><span class="o">&lt;</span><span class="kt">dynamic</span><span class="p">,</span><span class="w"> </span><span class="kt">dynamic</span><span class="o">&gt;</span><span class="w"> </span><span class="n">map</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">MediaStreamNative</span><span class="p">(</span><span class="n">map</span><span class="p">[</span><span class="s1">'streamId'</span><span class="p">],</span><span class="w"> </span><span class="n">map</span><span class="p">[</span><span class="s1">'ownerTag'</span><span class="p">])</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">      </span><span class="p">..</span><span class="n">setMediaTracks</span><span class="p">(</span><span class="n">map</span><span class="p">[</span><span class="s1">'audioTracks'</span><span class="p">],</span><span class="w"> </span><span class="n">map</span><span class="p">[</span><span class="s1">'videoTracks'</span><span class="p">]);</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">  </span><span class="p">}</span>
+</code></pre></div>
+<p>它只持有三样东西：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>streamId</code></td>
+<td>流 ID</td>
+<td><strong>查表主键</strong></td>
+</tr>
+<tr>
+<td><code>ownerTag</code></td>
+<td>归属标记；远端流 = <code>peerConnectionId</code>，本地流 = <code>"local"</code></td>
+<td><strong>查哪张表的次键</strong></td>
+</tr>
+<tr>
+<td><code>_audioTracks</code> / <code>_videoTracks</code></td>
+<td>轨道元数据（id / kind / label / enabled）</td>
+<td>只用来判断「有没有视频轨」，<strong>不含像素</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>关键认知：<strong>它是句柄（handle），不是数据容器</strong>。像素始终留在原生 libwebrtc 的 <code>VideoTrack</code> 里，Dart 侧永远不经过。</p>
+</blockquote>
+<h4 id="352-mediastream-srcobject">3.5.2 远端 <code>MediaStream</code> 是怎么诞生的（<code>srcObject</code> 之前）<a class="headerlink" href="#352-mediastream-srcobject" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>远端 SetRemoteDescription 成功
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>        │
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>        ▼ 原生（libwebrtc 线程）
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>PeerConnectionObserver.onAddTrack(receiver, streams)      ← Android，unified-plan
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>  ├─ params: event=onTrack, streams=[{streamId, ownerTag: id}], track, receiver
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>  └─ sendEvent() ──EventChannel──► Dart
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>        │
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>        └─ 同时把流登记进 PeerConnectionObserver.remoteStreams（onAddStream 时写入）
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>                │
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>                ▼ Dart
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>rtc_peerconnection_impl.dart  case 'onTrack'
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>  var streams = params.map((e) =&gt; MediaStreamNative.fromMap(e)).toList();
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>  onTrack?.call(RTCTrackEvent(streams: streams, track: ...))
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>                │
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>                ▼ 本项目信令层分流
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a>signaling.dart:656  pc.onTrack = (event) {
+<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a>    final stream = event.streams[0];
+<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a>    if (event.track.kind == 'video')      onAddRemoteStream?.call(newSession, stream);
+<a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a>    else if (event.track.kind == 'audio') onAddRemoteAudioStream?.call(newSession, stream);
+<a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a>  }
+<a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a>                │
+<a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a>                ▼ 页面
+<a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a>monitor_viewer_page.dart:252  _syncRemoteStream(stream) → _remoteRenderer.srcObject = stream
+</code></pre></div>
+<p><strong><code>ownerTag</code> 就是在 Dart 侧构造句柄时被写死的</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1">// $PUB/lib/src/native/rtc_peerconnection_impl.dart  case 'onAddTrack'</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="kd">var</span><span class="w"> </span><span class="n">newStream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MediaStreamNative</span><span class="p">(</span><span class="n">streamId</span><span class="p">,</span><span class="w"> </span><span class="n">_peerConnectionId</span><span class="p">);</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="kd">var</span><span class="w"> </span><span class="n">newStream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MediaStreamNative</span><span class="p">.</span><span class="n">fromMap</span><span class="p">(</span><span class="n">e</span><span class="p">);</span><span class="w">   </span><span class="c1">// onTrack 路径：ownerTag 来自原生上报的 map</span>
+</code></pre></div>
+<p>原生侧登记远端流的两个位置（注意平台不对称）：</p>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>写入点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>iOS</td>
+<td><code>FlutterRTCPeerConnection.m</code> <code>didAddStream</code> <strong>和</strong> <code>didAddReceiver</code></td>
+<td>unified-plan 走 <code>didAddReceiver</code>，显式 <code>remoteStreams[mediaStreams[0].streamId] = mediaStreams[0]</code></td>
+</tr>
+<tr>
+<td>Android</td>
+<td><code>PeerConnectionObserver.onAddStream()</code>（<code>remoteStreams.put(streamId, mediaStream)</code>，第 405 行）</td>
+<td><code>onAddTrack()</code> 里<strong>没有</strong>写 <code>remoteStreams</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚠️ <strong>待验证点</strong>：本项目走 unified-plan，Android 侧 <code>remoteStreams</code> 只在 <code>onAddStream()</code> 写入。这条链能跑通，说明 libwebrtc 出于向后兼容仍为带 <code>a=msid</code> 的远端流触发了 <code>onAddStream</code>。验证方法：在 <code>onAddStream</code> / <code>onAddTrack</code> 各打一行日志，观察实际触发的是哪个。
+这个细节解释了后面 3.5.3 的「<code>ownerTag</code> 传错 = 静默黑屏」。</p>
+</blockquote>
+<h4 id="353-srcobject-stream-videotrack">3.5.3 <code>srcObject = stream</code>：四次查表才落到 <code>VideoTrack</code><a class="headerlink" href="#353-srcobject-stream-videotrack" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1">// rephone-security/lib/pages/monitor_viewer_page.dart:104</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="kt">void</span><span class="w"> </span><span class="n">_syncRemoteStream</span><span class="p">(</span><span class="n">MediaStream</span><span class="w"> </span><span class="n">stream</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">  </span><span class="n">_remoteStream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stream</span><span class="p">;</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">stream</span><span class="p">.</span><span class="n">getVideoTracks</span><span class="p">().</span><span class="n">isNotEmpty</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">    </span><span class="n">_remoteRenderer</span><span class="p">.</span><span class="n">srcObject</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stream</span><span class="p">;</span><span class="w">   </span><span class="c1">// ← 用的是 setter</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>① Dart   setter → invokeMethod('videoRendererSetSrcObject',
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>                    {textureId, streamId: stream.id, ownerTag: stream.ownerTag})
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>                    // 注意：用 setter 时【不带 trackId】
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>② native renders.get(textureId)                     // 先按 textureId 找渲染器
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>③ native getStreamForId(streamId, ownerTag)         // 再按 (ownerTag, streamId) 找流
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>④ native stream.videoTracks.get(0)                  // 再取第一条视频轨
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>⑤ native videoTrack.addSink(surfaceTextureRenderer) // ★ 绑定
+</code></pre></div>
+<p>③ 是整个链路最关键的一次查表：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1">// $PUB/android/.../MethodCallHandlerImpl.java:1649</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="n">MediaStream</span><span class="w"> </span><span class="nf">getStreamForId</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">peerConnectionId</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="w">  </span><span class="n">MediaStream</span><span class="w"> </span><span class="n">stream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">peerConnectionId</span><span class="p">.</span><span class="na">length</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="w">    </span><span class="n">PeerConnectionObserver</span><span class="w"> </span><span class="n">pco</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mPeerConnectionObservers</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">peerConnectionId</span><span class="p">);</span><span class="w">  </span><span class="c1">// ← ownerTag 就是 key</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">pco</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="w">      </span><span class="n">stream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pco</span><span class="p">.</span><span class="na">remoteStreams</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">id</span><span class="p">);</span>
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">Entry</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">PeerConnectionObserver</span><span class="o">&gt;</span><span class="w"> </span><span class="n">entry</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">mPeerConnectionObservers</span><span class="p">.</span><span class="na">entrySet</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a><span class="w">      </span><span class="c1">// 退化路径：遍历所有 PeerConnection 找同名的流</span>
+<a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">stream</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a><span class="w">    </span><span class="n">stream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">localStreams</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">id</span><span class="p">);</span><span class="w">   </span><span class="c1">// 再退一步找本地流</span>
+<a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">stream</span><span class="p">;</span>
+<a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a><span class="p">}</span>
+</code></pre></div>
+<p>调用者处的分支决定了「取哪条轨」：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1">// $PUB/android/.../MethodCallHandlerImpl.java:728</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ownerTag</span><span class="p">.</span><span class="na">equals</span><span class="p">(</span><span class="s">"local"</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="w">  </span><span class="n">stream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">localStreams</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">streamId</span><span class="p">);</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="w">  </span><span class="n">stream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getStreamForId</span><span class="p">(</span><span class="n">streamId</span><span class="p">,</span><span class="w"> </span><span class="n">ownerTag</span><span class="p">);</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="p">}</span>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">trackId</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">trackId</span><span class="p">.</span><span class="na">equals</span><span class="p">(</span><span class="s">"0"</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="w">  </span><span class="n">MediaStreamTrack</span><span class="w"> </span><span class="n">track</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getTrackForId</span><span class="p">(</span><span class="n">trackId</span><span class="p">,</span><span class="w"> </span><span class="n">ownerTag</span><span class="p">);</span>
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">track</span><span class="w"> </span><span class="k">instanceof</span><span class="w"> </span><span class="n">VideoTrack</span><span class="p">)</span><span class="w"> </span><span class="n">render</span><span class="p">.</span><span class="na">setTrack</span><span class="p">((</span><span class="n">VideoTrack</span><span class="p">)</span><span class="w"> </span><span class="n">track</span><span class="p">,</span><span class="w"> </span><span class="n">streamId</span><span class="p">,</span><span class="w"> </span><span class="n">ownerTag</span><span class="p">);</span>
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="w">  </span><span class="k">else</span><span class="w">                             </span><span class="n">render</span><span class="p">.</span><span class="na">setStream</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span><span class="w"> </span><span class="n">trackId</span><span class="p">,</span><span class="w"> </span><span class="n">ownerTag</span><span class="p">);</span>
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a><span class="w">  </span><span class="n">render</span><span class="p">.</span><span class="na">setStream</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span><span class="w"> </span><span class="n">ownerTag</span><span class="p">);</span><span class="w">   </span><span class="c1">// ← 本项目走这里：只取 videoTracks[0]</span>
+<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a><span class="p">}</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>调用方式</th>
+<th>参数</th>
+<th>选中哪条轨</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>renderer.srcObject = stream</code>（setter，本项目）</td>
+<td>3 个</td>
+<td><code>videoTracks.get(0)</code>，<strong>无法指定第 2 条</strong></td>
+</tr>
+<tr>
+<td><code>renderer.setSrcObject(stream: s, trackId: t)</code>（方法）</td>
+<td>4 个</td>
+<td>按 <code>trackId</code> 精确匹配</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>如果将来相机端一条流里带多路视频（如主流 + 屏幕共享），必须从 setter 换成 <code>setSrcObject(trackId:)</code>。</p>
+</blockquote>
+<h4 id="354-addsink">3.5.4 <code>addSink</code>：唯一的绑定落点<a class="headerlink" href="#354-addsink" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1">// $PUB/android/.../FlutterRTCVideoRenderer.java:249</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="kd">private</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">tryAddRendererToVideoTrack</span><span class="p">()</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">Exception</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">videoTrack</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="w">    </span><span class="n">EglBase</span><span class="p">.</span><span class="na">Context</span><span class="w"> </span><span class="n">sharedContext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">EglUtils</span><span class="p">.</span><span class="na">getRootEglBaseContext</span><span class="p">();</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sharedContext</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* 直接放弃渲染，避免 SurfaceViewRenderer.init 抛异常杀进程 */</span><span class="w"> </span><span class="k">return</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="w">    </span><span class="n">surfaceTextureRenderer</span><span class="p">.</span><span class="na">release</span><span class="p">();</span>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="w">    </span><span class="n">listenRendererEvents</span><span class="p">();</span>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="w">    </span><span class="n">surfaceTextureRenderer</span><span class="p">.</span><span class="na">init</span><span class="p">(</span><span class="n">sharedContext</span><span class="p">,</span><span class="w"> </span><span class="n">rendererEvents</span><span class="p">);</span>
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a><span class="w">    </span><span class="n">surfaceTextureRenderer</span><span class="p">.</span><span class="na">surfaceCreated</span><span class="p">(</span><span class="n">producer</span><span class="p">);</span>
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a>
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a><span class="w">    </span><span class="n">videoTrack</span><span class="p">.</span><span class="na">addSink</span><span class="p">(</span><span class="n">surfaceTextureRenderer</span><span class="p">);</span><span class="w">   </span><span class="c1">// ★ 渲染真正开始的地方</span>
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li><code>addSink</code> 是 libwebrtc 的标准观察者接口。<strong>从这一行起，解码线程每产出一帧就回调 <code>SurfaceTextureRenderer.onFrame()</code></strong>。</li>
+<li>每次都先 <code>release()</code> 再 <code>init()</code>：换轨（simulcast 层切换 / 重新绑定）时必须重建 GL 状态与 <code>rendererEvents</code>。</li>
+<li><code>EglUtils.getRootEglBaseContext()</code> 是<strong>全局共享的 EGL 上下文</strong>——全 App 共一套 GL 纹理与 shader，这也是为什么必须判空（共享上下文没初始化好，渲染器无从创建）。</li>
+<li>反向解绑在 <code>setVideoTrack(null)</code> 分支 → <code>videoTrack.removeSink(surfaceTextureRenderer)</code>。</li>
+</ul>
+<h4 id="355-android-ios">3.5.5 一帧的生命周期：Android 与 iOS 走了两条完全不同的路<a class="headerlink" href="#355-android-ios" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Android</th>
+<th>iOS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>帧入口</td>
+<td><code>SurfaceTextureRenderer.onFrame(VideoFrame)</code></td>
+<td><code>FlutterRTCVideoRenderer.renderFrame:</code></td>
+</tr>
+<tr>
+<td>传递方式</td>
+<td><strong>GPU 共享</strong>：EGL 直接画到纹理背后的 Surface</td>
+<td><strong>CPU 拷贝</strong>：I420 → <code>CVPixelBuffer</code></td>
+</tr>
+<tr>
+<td>旋转</td>
+<td>libwebrtc / GPU 完成</td>
+<td>手写 <code>RTCYUVHelper I420Rotate</code></td>
+</tr>
+<tr>
+<td>通知引擎</td>
+<td>提交 EGLSurface（引擎自行合成）</td>
+<td><code>[_registry textureFrameAvailable:_textureId]</code></td>
+</tr>
+<tr>
+<td>引擎取数</td>
+<td>无需回调</td>
+<td>引擎主动调 <code>copyPixelBuffer</code></td>
+</tr>
+<tr>
+<td>开销</td>
+<td>低（无拷贝）</td>
+<td>每帧一次 memcpy + 旋转</td>
+</tr>
+</tbody>
+</table>
+<p>Android：<strong>Surface 在第一帧到达时才创建</strong>，<code>producer.setSize()</code> 用帧的旋转后分辨率：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1">// $PUB/android/.../SurfaceTextureRenderer.java:100</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onFrame</span><span class="p">(</span><span class="n">VideoFrame</span><span class="w"> </span><span class="n">frame</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="w">  </span><span class="kd">synchronized</span><span class="w"> </span><span class="p">(</span><span class="n">surfaceLock</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">surface</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="w">      </span><span class="n">producer</span><span class="p">.</span><span class="na">setSize</span><span class="p">(</span><span class="n">frame</span><span class="p">.</span><span class="na">getRotatedWidth</span><span class="p">(),</span><span class="w"> </span><span class="n">frame</span><span class="p">.</span><span class="na">getRotatedHeight</span><span class="p">());</span>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="w">      </span><span class="n">surface</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">producer</span><span class="p">.</span><span class="na">getSurface</span><span class="p">();</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="w">      </span><span class="n">createEglSurface</span><span class="p">(</span><span class="n">surface</span><span class="p">);</span>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">frameSizeChanged</span><span class="p">(</span><span class="n">frame</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a><span class="w">      </span><span class="c1">// The producer's backing buffers are fixed-size: setSize() only takes</span>
+<a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="w">      </span><span class="c1">// effect for a Surface obtained afterwards. Without recreating the EGL</span>
+<a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a><span class="w">      </span><span class="c1">// surface here, a simulcast layer upgrade keeps rendering into the old</span>
+<a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a><span class="w">      </span><span class="c1">// low-resolution buffer and the video stays blurry.</span>
+<a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a><span class="w">      </span><span class="n">releaseEglSurface</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{});</span>
+<a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a><span class="w">      </span><span class="n">surface</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span><span class="w">                                   </span><span class="c1">// 先置空，避免 getSurface 抛异常后画进已释放的 Surface</span>
+<a id="__codelineno-25-15" name="__codelineno-25-15" href="#__codelineno-25-15"></a><span class="w">      </span><span class="n">producer</span><span class="p">.</span><span class="na">setSize</span><span class="p">(</span><span class="n">frame</span><span class="p">.</span><span class="na">getRotatedWidth</span><span class="p">(),</span><span class="w"> </span><span class="n">frame</span><span class="p">.</span><span class="na">getRotatedHeight</span><span class="p">());</span>
+<a id="__codelineno-25-16" name="__codelineno-25-16" href="#__codelineno-25-16"></a><span class="w">      </span><span class="n">surface</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">producer</span><span class="p">.</span><span class="na">getSurface</span><span class="p">();</span>
+<a id="__codelineno-25-17" name="__codelineno-25-17" href="#__codelineno-25-17"></a><span class="w">      </span><span class="n">createEglSurface</span><span class="p">(</span><span class="n">surface</span><span class="p">);</span>
+<a id="__codelineno-25-18" name="__codelineno-25-18" href="#__codelineno-25-18"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-25-19" name="__codelineno-25-19" href="#__codelineno-25-19"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-25-20" name="__codelineno-25-20" href="#__codelineno-25-20"></a><span class="w">  </span><span class="n">updateFrameDimensionsAndReportEvents</span><span class="p">(</span><span class="n">frame</span><span class="p">);</span>
+<a id="__codelineno-25-21" name="__codelineno-25-21" href="#__codelineno-25-21"></a><span class="w">  </span><span class="kd">super</span><span class="p">.</span><span class="na">onFrame</span><span class="p">(</span><span class="n">frame</span><span class="p">);</span><span class="w">   </span><span class="c1">// EglRenderer：投递到自己的渲染线程，用 GlRectDrawer 把帧画到 EGLSurface</span>
+<a id="__codelineno-25-22" name="__codelineno-25-22" href="#__codelineno-25-22"></a><span class="p">}</span>
+</code></pre></div>
+<blockquote>
+<p><strong>坑位</strong>：<code>SurfaceProducer</code> 的底层 buffer 是<strong>定长</strong>的，<code>setSize()</code> 只对「之后获取的 Surface」生效。所以在 <code>else if</code> 分支里<strong>必须 release EGLSurface → setSize → 重新 getSurface → createEglSurface</strong>。否则 simulcast 从低清层升到高清层时，画面会一直停留在旧的低分辨率上（模糊），而分辨率事件却已经上报给 Dart 了（表现为「布局变对了，画面还是糊的」）。</p>
+</blockquote>
+<p>iOS：多了一个节流标志，防止解码快于合成：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1">// $PUB/ios/.../FlutterRTCVideoRenderer.m:194  renderFrame:</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">_frameAvailable</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">_pixelBufferRef</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="w">  </span><span class="p">[</span><span class="nb">self</span><span class="w"> </span><span class="n">copyI420ToCVPixelBuffer</span><span class="o">:</span><span class="n">_pixelBufferRef</span><span class="w"> </span><span class="n">withFrame</span><span class="o">:</span><span class="n">frame</span><span class="p">];</span>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="n">_textureId</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">-1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">[</span><span class="n">_registry</span><span class="w"> </span><span class="n">textureFrameAvailable</span><span class="o">:</span><span class="n">_textureId</span><span class="p">];</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="w">  </span><span class="n">_frameAvailable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="p">}</span>
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a>
+<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a><span class="c1">// $PUB/ios/.../FlutterRTCVideoRenderer.m:54  copyPixelBuffer（由引擎回调）</span>
+<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_pixelBufferRef</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">nil</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">_frameAvailable</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a><span class="w">  </span><span class="n">buffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CVBufferRetain</span><span class="p">(</span><span class="n">_pixelBufferRef</span><span class="p">);</span>
+<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a><span class="w">  </span><span class="n">_frameAvailable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w">   </span><span class="c1">// 引擎取走后解锁，下一帧才能写入</span>
+<a id="__codelineno-26-12" name="__codelineno-26-12" href="#__codelineno-26-12"></a><span class="p">}</span>
+</code></pre></div>
+<h4 id="356-widget">3.5.6 事件回流：尺寸 / 旋转 / 首帧如何让 widget 自动重排<a class="headerlink" href="#356-widget" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>原生 RendererEvents.onFrameResolutionChanged / onFirstFrameRendered
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>        │  eventSink.success({event: didTextureChangeVideoSize, width, height, rotation})
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>        ▼  EventChannel('FlutterWebRTC/Texture$textureId')
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>Dart   eventListener: value = value.copyWith(width:, height:, rotation:, renderVideo:)
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>        │  RTCVideoRenderer extends ValueNotifier&lt;RTCVideoValue&gt; → 自动 notifyListeners
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>        ▼
+<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a>RTCVideoView 的 ValueListenableBuilder rebuild
+<a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a>  → SizedBox(width: maxHeight * value.aspectRatio, height: maxHeight)
+<a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a>  → FittedBox(fit: BoxFit.contain / cover)
+</code></pre></div>
+<p><code>aspectRatio</code> 对旋转 90°/270° 会<strong>交换宽高</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1">// $PUB/../webrtc_interface-1.5.1/lib/src/rtc_video_renderer.dart</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="kt">double</span><span class="w"> </span><span class="kd">get</span><span class="w"> </span><span class="n">aspectRatio</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">width</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">height</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0.0</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="m">1.0</span><span class="p">;</span>
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">rotation</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">90</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">rotation</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">270</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">height</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">width</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">width</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">height</span><span class="p">;</span>
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="p">}</span>
+</code></pre></div>
+<blockquote>
+<p><strong>这条链上没有任何业务 <code>setState</code></strong>。「横竖屏翻转时画面容器自动跟着变」完全由 <code>ValueNotifier</code> 驱动。</p>
+</blockquote>
+<h4 id="357">3.5.7 渲染层实践要点与坑位<a class="headerlink" href="#357" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>为什么要赋两次 <code>srcObject</code></td>
+<td>unified-plan 下 audio/video 的 <code>onTrack</code> 顺序不定；有视频轨时才绑主渲染器，音频轨后到再赋一次以刷新部分机型的播放（<code>monitor_viewer_page.dart:102-103</code> 注释）</td>
+</tr>
+<tr>
+<td>挂断时置 <code>null</code></td>
+<td><code>:217</code> / <code>:272</code> → 发 <code>streamId: ''</code> → 原生查到 <code>null</code> → <code>setVideoTrack(null)</code> → <code>removeSink</code>。<strong>纹理本身保留</strong>，下次通话可复用</td>
+</tr>
+<tr>
+<td><code>dispose()</code> 必须调用</td>
+<td><code>:82</code>。原生侧 <code>producer.release()</code> + <code>surfaceTextureRenderer.release()</code> + <code>eventChannel.setStreamHandler(null)</code>；漏掉 = Flutter 纹理与 EGL surface 双重泄漏，反复进出页面会崩</td>
+</tr>
+<tr>
+<td><code>ownerTag</code> 传错 = 静默黑屏</td>
+<td><code>getStreamForId</code> 查不到时静默返回 <code>null</code>，<strong>无异常、无日志</strong>。这是最难排查的一类渲染问题</td>
+</tr>
+<tr>
+<td><code>initialize()</code> 幂等</td>
+<td>Dart 侧用 <code>Completer _initializing</code> 保护，重复调用只 await 同一个 future（本项目在 <code>initState</code> 里 fire-and-forget 调用）</td>
+</tr>
+<tr>
+<td><code>renderVideo</code> 是门闸</td>
+<td><code>_textureId != null &amp;&amp; _srcObject != null</code> 才画 <code>Texture</code>，否则显示占位符——所以「已 initialize 但没设流」不会黑屏而是空白</td>
+</tr>
+<tr>
+<td>一套纹理一个渲染器</td>
+<td>textureId 全局唯一、不跨页面共享；同页两个 <code>RTCVideoRenderer</code> = 两块 GPU 合成层</td>
+</tr>
+</tbody>
+</table>
+<h4 id="358">3.5.8 回声与音频路由（待展开）<a class="headerlink" href="#358" title="Permanent link">&para;</a></h4>
+<ul>
+<li>[ ] 回声消除 AEC、降噪、自动增益（native 默认开）——结合 3.5.5 的「iOS 每帧 CPU 拷贝」理解为什么 iOS 端功耗更高</li>
+<li>[ ] 本项目 iOS 通话音频路由切换代码为什么必须在 <code>invite</code> 前调用（<code>monitor_viewer_page.dart</code> 的 <code>_applyIosMonitorAudioMode</code>）</li>
+<li>[ ] 对讲（monitor talkback）时本地麦克风与远端播放的相互干扰</li>
+</ul>
+<h3 id="36">3.6 本项目"录下来的是什么"<a class="headerlink" href="#36" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>状态：🟢 已填充
+这一节是 3.0「分层」的收尾：<strong>本项目里有四条互相独立的媒体链路，没有一条是 RTSP/RTMP。</strong></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>产物</th>
+<th>链路</th>
+<th>编码 / 格式</th>
+<th>落点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>① 实时画面</strong></td>
+<td>采集 → 编码 → <strong>SRTP/RTP</strong> → 监控端</td>
+<td>由 SDP 协商（<strong>大概率 VP8</strong>，见 P4）</td>
+<td>不落盘，直接渲染（3.5）</td>
+</tr>
+<tr>
+<td><strong>② 事件录像</strong></td>
+<td>本地视频轨 → <code>MediaRecorder</code> → 封装</td>
+<td><strong>MP4（容器内是 AVCC）</strong>，编码由系统编码器决定（Android 通常 H.264 + AAC）</td>
+<td><code>${doc}/recordings/event_&lt;ts&gt;.mp4</code></td>
+</tr>
+<tr>
+<td><strong>③ 告警快照</strong></td>
+<td><code>FrameTap</code> 原生取 RGB → <code>image</code> 包编码</td>
+<td><strong>PNG</strong></td>
+<td><code>${doc}/snapshots/snapshot_&lt;ts&gt;.png</code></td>
+</tr>
+<tr>
+<td><strong>④ 回放视频</strong></td>
+<td>MP4 文件字节流 → <strong>DataChannel</strong> → 落临时目录 → <code>video_player</code> 播</td>
+<td>就是 ② 那个 MP4，原样搬运</td>
+<td><code>${tmp}/video_&lt;id&gt;.mp4</code></td>
+</tr>
+</tbody>
+</table>
+<p>关键代码：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1">// rephone-security/lib/pages/camera_endpoint_page.dart:1244-1260  ② 录制</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="kd">final</span><span class="w"> </span><span class="n">filePath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'</span><span class="si">${</span><span class="n">saveDir</span><span class="p">.</span><span class="n">path</span><span class="si">}</span><span class="s1">/event_</span><span class="si">$</span><span class="n">timestamp</span><span class="s1">.mp4'</span><span class="p">;</span>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="n">_mediaRecorder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MediaRecorder</span><span class="p">();</span>
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="kd">final</span><span class="w"> </span><span class="n">tracks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">_localRenderer</span><span class="p">.</span><span class="n">srcObject</span><span class="o">?</span><span class="p">.</span><span class="n">getVideoTracks</span><span class="p">();</span>
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a><span class="kd">await</span><span class="w"> </span><span class="n">_mediaRecorder</span><span class="o">!</span><span class="p">.</span><span class="n">start</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span><span class="w"> </span><span class="nl">videoTrack:</span><span class="w"> </span><span class="n">tracks</span><span class="p">.</span><span class="n">first</span><span class="p">);</span>
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="c1">// rephone-security/lib/pages/playback_page.dart:224-231  ④ 回放（DataChannel 二进制）</span>
+<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">isBinary</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_isDownloadingVideo</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">_videoFileSink</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a><span class="w">    </span><span class="n">_videoFileSink</span><span class="o">!</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">binary</span><span class="p">);</span>
+<a id="__codelineno-29-11" name="__codelineno-29-11" href="#__codelineno-29-11"></a><span class="w">    </span><span class="n">_receivedVideoBytes</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">binary</span><span class="p">.</span><span class="n">length</span><span class="p">;</span>
+<a id="__codelineno-29-12" name="__codelineno-29-12" href="#__codelineno-29-12"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-29-13" name="__codelineno-29-13" href="#__codelineno-29-13"></a><span class="w">  </span><span class="k">return</span><span class="p">;</span>
+<a id="__codelineno-29-14" name="__codelineno-29-14" href="#__codelineno-29-14"></a><span class="p">}</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">② 和 ① 是两条互不相关的编码链路</p>
+<p><code>MediaRecorder</code> 是<strong>从本地视频轨直接录</strong>，不是把发出去的 RTP 包存下来。
+所以<strong>推流用什么编码（VP8）和录下来是什么编码（通常 H.264）可以完全不同</strong>——排查"录的文件打不开/花屏"时，不要去动推流的编码设置。</p>
+</div>
+<h4 id="datachannel-rtmp-http">为什么回调用 DataChannel 传文件，而不是 RTMP / HTTP？<a class="headerlink" href="#datachannel-rtmp-http" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>考虑</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>媒体在哪</td>
+<td>录像<strong>存在相机端手机上</strong>，不在服务器</td>
+</tr>
+<tr>
+<td>拓扑</td>
+<td>两端已是 P2P 直连，再绕服务器上传下载是浪费</td>
+</tr>
+<tr>
+<td>已有通道</td>
+<td>DataChannel（<code>fileTransfer</code>）<strong>已经建好且被 DTLS 加密</strong>，复用即可</td>
+</tr>
+<tr>
+<td>语义</td>
+<td>回放是"<strong>取文件</strong>"，不是"<strong>看直播流</strong>"——不需要流媒体的 seek/实时语义</td>
+</tr>
+<tr>
+<td>成本</td>
+<td>引入 RTMP/HTTP 要新起服务端、新开放端口、重做鉴权</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>一句话：<strong>它是文件传输，不是流媒体</strong>。用 DataChannel 当"加密 U 盘"是最省事且贴合 P2P 拓扑的选择。
+代价是需要自己实现分块、进度、断点（本项目已实现 <code>video_start</code> / <code>video_end</code> / <code>video_error</code> 三个控制消息 + 进度条）。</p>
+</blockquote>
+<h2 id="_3">待填充清单（每次补一节就更新）<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[x] 3.0 分层总纲（编码 / 封装 / 传输 / 控制）</li>
+<li>[x] 3.1 数字音视频基础（要点；音频回声与路由见 3.5.8 待展开）</li>
+<li>[x] 3.2 编解码器（H.264/265、VP8/9/AV1、压缩原理、NALU、Annex-B/AVCC/RTP、软硬编）</li>
+<li>[x] 3.3 SDP 协商机制（payload type / offer-answer / fmtp / 设备能力三层）</li>
+<li>[x] 3.4 RTP/RTCP + 抗丢包 + RTSP/RTMP/HLS 横向对比</li>
+<li>[x] 3.4.6 发送端两路打包器 / 3.4.7 接收端解复用与 NetEq / 3.4.8 音画同步（NTP↔RTP + <code>a=group:LS</code> + 只调音频）</li>
+<li>[x] 3.5 渲染（远端流渲染全链路已填充；回声/音频路由见 3.5.8 待展开）</li>
+<li>[x] 3.6 四条媒体产物链路</li>
+<li>[ ] 抓一份<strong>真实 SDP</strong> 存为笔记样例（加到 3.3.2）</li>
+<li>[ ] 3.5.8 回声消除 / 音频路由 / 对讲串扰</li>
+</ul>
+<h2 id="_4">对应本项目<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>代码位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>采集约束（分辨率/帧率）</td>
+<td><code>signaling.dart:607-626</code> <code>createStream()</code></td>
+</tr>
+<tr>
+<td>建 PC（无 codec 参数，全走默认）</td>
+<td><code>signaling.dart:641-644</code> <code>createPeerConnection</code></td>
+</tr>
+<tr>
+<td>SDP 生成 / 收发</td>
+<td><code>_createOffer()</code> <code>:812</code> / <code>_createAnswer()</code> <code>:848</code></td>
+</tr>
+<tr>
+<td><strong>编码干预的唯一钩子</strong></td>
+<td><code>_fixSdp()</code> <code>signaling.dart:841-846</code>（目前是空函数）</td>
+</tr>
+<tr>
+<td>远端渲染</td>
+<td><code>monitor_viewer_page.dart</code> <code>_remoteRenderer</code>（<code>initialize()</code> → <code>srcObject</code> → <code>RTCVideoView</code>），详见 3.5</td>
+</tr>
+<tr>
+<td>本地录制（MP4）</td>
+<td><code>camera_endpoint_page.dart:1232-1295</code> <code>_startTenSecondsRecording</code></td>
+</tr>
+<tr>
+<td>告警快照（PNG）</td>
+<td><code>camera_endpoint_page.dart:1125-1148</code> <code>_saveDetectionSnapshot</code></td>
+</tr>
+<tr>
+<td>回放（DataChannel 传文件）</td>
+<td><code>playback_page.dart:222-292</code> onDataChannelMessage</td>
+</tr>
+<tr>
+<td>音频路由</td>
+<td><code>monitor_viewer_page.dart</code> <code>_applyIosMonitorAudioMode()</code></td>
+</tr>
+<tr>
+<td>对讲（重协商加麦克风）</td>
+<td><code>signaling.dart:253-295</code> <code>setMonitorTalkbackEnabled()</code></td>
+</tr>
+<tr>
+<td>Simulcast 模板（未启用）</td>
+<td><code>signaling.dart:673-715</code>（注释块，现成三档）</td>
+</tr>
+<tr>
+<td>Android WebRTC 版本</td>
+<td><code>android/app/build.gradle:122</code> <code>io.github.webrtc-sdk:android:150.7871.01</code></td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 WebRTC 伴随手册
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.top", "navigation.tracking", "content.code.copy", "content.code.annotate", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>
