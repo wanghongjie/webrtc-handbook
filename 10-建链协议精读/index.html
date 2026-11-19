@@ -1,0 +1,2236 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="在 Rephone Security 项目（相机端 App + flutter-webrtc-server 信令服务）中边做边写的 WebRTC 学习笔记与踩坑记录">
+      
+      
+        <meta name="author" content="wanghongjie">
+      
+      
+        <link rel="canonical" href="https://wanghongjie.github.io/webrtc-handbook/10-%E5%BB%BA%E9%93%BE%E5%8D%8F%E8%AE%AE%E7%B2%BE%E8%AF%BB/">
+      
+      
+        <link rel="prev" href="../09-%E9%87%87%E9%9B%86%E7%AB%AF%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F%E7%BA%A6%E5%AE%9A/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>10 · 建链协议精读 - WebRTC 伴随手册</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#10-sdp-ice-dtls-srtp" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="WebRTC 伴随手册" class="md-header__button md-logo" aria-label="WebRTC 伴随手册" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            WebRTC 伴随手册
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              10 · 建链协议精读
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="WebRTC 伴随手册" class="md-nav__button md-logo" aria-label="WebRTC 伴随手册" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    WebRTC 伴随手册
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-WebRTC-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 · WebRTC 基础概念
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-WebRTC-%E6%9C%AF%E8%AF%AD%E9%80%9F%E6%9F%A5%E8%A1%A8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02 · 术语速查表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-%E9%9F%B3%E8%A7%86%E9%A2%91%E4%B8%8E%E5%AA%92%E4%BD%93%E5%9F%BA%E7%A1%80/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03 · 音视频与媒体基础
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-%E4%BF%A1%E4%BB%A4%E4%B8%8E%E8%BF%9E%E6%8E%A5%E5%BB%BA%E7%AB%8B/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04 · 信令与连接建立
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-%E7%8A%B6%E6%80%81%E6%9C%BA%E4%B8%8E%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05 · 状态机与生命周期
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E5%9C%B0%E5%9B%BE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    06 · 项目代码地图
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-%E9%97%AE%E9%A2%98%E4%B8%8E%E5%9D%91%E4%BD%8D%E8%AE%B0%E5%BD%95/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07 · 问题与坑位记录
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-%E5%AA%92%E4%BD%93%E6%B5%81%E4%B8%8E%E6%B8%B2%E6%9F%93%E9%93%BE%E8%B7%AF/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    08 · 媒体流与渲染链路
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-%E9%87%87%E9%9B%86%E7%AB%AF%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F%E7%BA%A6%E5%AE%9A/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    09 · 采集端与数据格式约定
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10 · 建链协议精读
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10 · 建链协议精读
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#100" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.0 建链全景：五个阶段的"字节视角"
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#101-sdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1 SDP 报文逐行精读（以本项目真实报文为例）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.1 SDP 报文逐行精读（以本项目真实报文为例）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1011" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1.1 会话级部分
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1012-track" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1.2 媒体级部分（每个 track 一段）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1013-offer-answer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1.3 offer 与 answer 的差异点
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#102-offeranswer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2 offer/answer 协商算法：双方怎么"对齐"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.2 offer/answer 协商算法：双方怎么&#34;对齐&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1021" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2.1 三条铁律
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1022-unified-plan-transceiver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2.2 unified-plan 与 transceiver：手机端的协商账本
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1023-rfc-3264-61" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2.3 方向协商矩阵（RFC 3264 §6.1）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1024-pt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2.4 PT 的"重新编号"陷阱 ★本项目核心踩坑
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#103-libdatachannel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3 设备端（libdatachannel）建链步骤分解
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.3 设备端（libdatachannel）建链步骤分解">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1031-sdp-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3.1 设备端独有的"SDP 后处理"（无浏览器 API 时的人工干预）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#104-flutter_webrtc-libwebrtc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.4 手机端（flutter_webrtc / libwebrtc）建链步骤分解
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.4 手机端（flutter_webrtc / libwebrtc）建链步骤分解">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1041-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.4.1 两端 API 对照表（同一件事的两种写法）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#105-ice-sdp-04" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5 ICE 在 SDP 中的落点（衔接 04 章）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#106-dtls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.6 DTLS 握手：加密通道怎么建立
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.6 DTLS 握手：加密通道怎么建立">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1061" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.6.1 背景：为什么媒体必须加密 + 为什么角色会出问题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1062" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.6.2 握手流程与指纹校验
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1063-dtls-05" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.6.3 DTLS 失败的表现（对照 05 章状态机）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#107-srtp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7 SRTP：媒体包怎么加密与打包
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.7 SRTP：媒体包怎么加密与打包">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1071-rtp-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.1 RTP 包头（12 字节，明文保留）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1072-h264-rtprfc-6184" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.2 H.264 怎么装进 RTP（RFC 6184）★本项目核心
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1073-media-handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.3 media handler 链：设备端的出向管线
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#108" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8 协商不一致故障大全（本项目实证优先）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#109" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9 排查工具箱：怎么"看到"这些协议字节
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        待填充清单
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        对应本项目（索引）
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#100" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.0 建链全景：五个阶段的"字节视角"
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#101-sdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1 SDP 报文逐行精读（以本项目真实报文为例）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.1 SDP 报文逐行精读（以本项目真实报文为例）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1011" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1.1 会话级部分
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1012-track" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1.2 媒体级部分（每个 track 一段）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1013-offer-answer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1.3 offer 与 answer 的差异点
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#102-offeranswer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2 offer/answer 协商算法：双方怎么"对齐"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.2 offer/answer 协商算法：双方怎么&#34;对齐&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1021" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2.1 三条铁律
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1022-unified-plan-transceiver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2.2 unified-plan 与 transceiver：手机端的协商账本
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1023-rfc-3264-61" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2.3 方向协商矩阵（RFC 3264 §6.1）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1024-pt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2.4 PT 的"重新编号"陷阱 ★本项目核心踩坑
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#103-libdatachannel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3 设备端（libdatachannel）建链步骤分解
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.3 设备端（libdatachannel）建链步骤分解">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1031-sdp-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3.1 设备端独有的"SDP 后处理"（无浏览器 API 时的人工干预）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#104-flutter_webrtc-libwebrtc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.4 手机端（flutter_webrtc / libwebrtc）建链步骤分解
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.4 手机端（flutter_webrtc / libwebrtc）建链步骤分解">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1041-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.4.1 两端 API 对照表（同一件事的两种写法）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#105-ice-sdp-04" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5 ICE 在 SDP 中的落点（衔接 04 章）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#106-dtls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.6 DTLS 握手：加密通道怎么建立
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.6 DTLS 握手：加密通道怎么建立">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1061" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.6.1 背景：为什么媒体必须加密 + 为什么角色会出问题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1062" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.6.2 握手流程与指纹校验
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1063-dtls-05" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.6.3 DTLS 失败的表现（对照 05 章状态机）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#107-srtp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7 SRTP：媒体包怎么加密与打包
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10.7 SRTP：媒体包怎么加密与打包">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1071-rtp-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.1 RTP 包头（12 字节，明文保留）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1072-h264-rtprfc-6184" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.2 H.264 怎么装进 RTP（RFC 6184）★本项目核心
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1073-media-handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7.3 media handler 链：设备端的出向管线
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#108" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8 协商不一致故障大全（本项目实证优先）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#109" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.9 排查工具箱：怎么"看到"这些协议字节
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        待填充清单
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        对应本项目（索引）
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="10-sdp-ice-dtls-srtp">10 建链协议精读：SDP → ICE → DTLS → SRTP（双端实现对照）<a class="headerlink" href="#10-sdp-ice-dtls-srtp" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>状态：🟢 主体已填充（2026-11-17） ｜ 难度：★★★☆☆
+本章要解决的问题：<strong>连接建立时双方到底互发了什么字节？各自怎么解析？协商不一致会发生什么？</strong>
+双端参照：
+- <strong>设备端</strong>（T41 摄像头，C++）：<code>libdatachannel</code> 库，代码 <code>t41-workspace/t41_build/wtest.cpp</code> 的 <code>handle_init()</code>
+- <strong>手机端</strong>（Flutter App）：<code>flutter_webrtc</code>（内嵌 libwebrtc），代码 <code>rephone-security/lib/services/signaling.dart</code>
+前置阅读：<code>04</code> 章（信令与 ICE 已详述，本章不重复，只补 SDP 侧与加密层）；<code>03</code> 章 3.3（SDP 基础）。</p>
+</blockquote>
+<hr />
+<h2 id="100">10.0 建链全景：五个阶段的"字节视角"<a class="headerlink" href="#100" title="Permanent link">&para;</a></h2>
+<p><code>04</code> 章讲的是"消息经信令服务器转发"的<strong>流程</strong>；本章下沉一层，看每个阶段<strong>报文里到底装了什么、对方拿到后怎么解析、哪一步对不上就挂</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>协议 / 报文</th>
+<th>载体</th>
+<th>双方在交换什么</th>
+<th>失败后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① 媒体协商</td>
+<td><strong>SDP</strong>（offer/answer 文本）</td>
+<td>信令（HTTP/WS）</td>
+<td>编解码清单、方向、传输参数、证书指纹</td>
+<td>找不到共同 codec → 无媒体；方向冲突 → 单向断流</td>
+</tr>
+<tr>
+<td>② 网络协商</td>
+<td><strong>ICE 候选</strong>（一行文本）+ <strong>STUN Binding</strong>（二进制 UDP）</td>
+<td>信令 + 直连 UDP</td>
+<td>互告可用地址；在候选对上互相探测</td>
+<td>全部候选对失败 → <code>iceConnectionState: failed</code></td>
+</tr>
+<tr>
+<td>③ 加密协商</td>
+<td><strong>DTLS 握手</strong>（TLS over UDP）</td>
+<td>直连 UDP</td>
+<td>交换证书、协商 SRTP 密钥</td>
+<td>指纹不匹配/角色冲突 → ICE 通了但媒体全丢（最迷惑的一类故障）</td>
+</tr>
+<tr>
+<td>④ 媒体传输</td>
+<td><strong>SRTP</strong>（加密的 RTP）</td>
+<td>直连 UDP</td>
+<td>音视频帧</td>
+<td>解密失败/PT 不符 → 包被静默丢弃 → 黑屏</td>
+</tr>
+<tr>
+<td>⑤ 控制反馈</td>
+<td><strong>RTCP</strong>（SR/RR/NACK/PLI）</td>
+<td>直连 UDP（与 RTP 同端口复用）</td>
+<td>时钟同步、丢包重传、关键帧请求</td>
+<td>无 NACK/PLI → 弱网下花屏不恢复</td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>sequenceDiagram
+    participant D as 设备端 libdatachannel&lt;br/&gt;(T41, wtest.cpp)
+    participant S as 信令服务器
+    participant P as 手机端 flutter_webrtc&lt;br/&gt;(libwebrtc)
+
+    Note over D,P: ① SDP 媒体协商（文本，经信令）
+    D-&gt;&gt;S: offer（SDP：H264+PT、sendonly、actpass、fingerprint）
+    S-&gt;&gt;P: offer
+    P-&gt;&gt;S: answer（SDP：选定 codec/PT、方向交集、setup 角色、fingerprint）
+    S-&gt;&gt;D: answer
+    Note over D: 解析 answer：取真实 PT、mid（wtest.cpp 445-474）
+
+    Note over D,P: ② ICE 网络协商（候选 + STUN 探测，见 04 章 4.3）
+    D--&gt;&gt;P: candidate（host/srflx/relay）
+    P--&gt;&gt;D: candidate
+    Note over D,P: STUN Binding 连通性检查 → 选路
+
+    Note over D,P: ③ DTLS 握手（在选中的候选对上）
+    Note over D,P: setup 角色决定谁先发 ClientHello；&lt;br/&gt;比对 SDP 里的 a=fingerprint；&lt;br/&gt;use_srtp 扩展导出 SRTP 密钥
+
+    Note over D,P: ④⑤ SRTP 媒体 + RTCP 控制（P2P 直连）
+    D-&gt;&gt;P: SRTP(H.264 帧，FU-A 分片)
+    P-&gt;&gt;D: RTCP RR / NACK / PLI</code></pre>
+<blockquote>
+<p>一句话总纲：<strong>SDP 决定"说什么话"，ICE 决定"走哪条路"，DTLS 决定"用什么钥匙"，SRTP 才是"真正的话"。任何一层对不上，表面症状都可能是"黑屏"，必须分层排查。</strong></p>
+</blockquote>
+<hr />
+<h2 id="101-sdp">10.1 SDP 报文逐行精读（以本项目真实报文为例）<a class="headerlink" href="#101-sdp" title="Permanent link">&para;</a></h2>
+<p>SDP 是<strong>纯文本</strong>，<code>\r\n</code> 分行，行首一个字母 + <code>=</code>。分两段：<strong>会话级</strong>（全局）和<strong>媒体级</strong>（每个 m= 行开启一段）。下面是本项目设备端 answer（libdatachannel 生成）的典型骨架，逐行讲"为什么存在"。</p>
+<h3 id="1011">10.1.1 会话级部分<a class="headerlink" href="#1011" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>v=0
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>o=- 4611731400430051336 2 IN IP4 127.0.0.1
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>s=-
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>t=0 0
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>a=group:BUNDLE stream-0 stream-1
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>a=msid-semantic: WMS t41-s0 t41-s1
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>行</th>
+<th>含义</th>
+<th>为什么需要（背景）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>v=0</code></td>
+<td>SDP 协议版本</td>
+<td>沿用 1998 年的 RFC 4566 格式，永远 0</td>
+</tr>
+<tr>
+<td><code>o=- &lt;sess-id&gt; &lt;ver&gt; IN IP4 127.0.0.1</code></td>
+<td>会话发起者标识：用户名、会话 ID、版本号</td>
+<td><code>sess-id</code> 全局唯一用于区分会话；<code>ver</code> 每次 renegotiation 递增（对讲加麦克风时你会看到它 +1）</td>
+</tr>
+<tr>
+<td><code>s=-</code></td>
+<td>会话名</td>
+<td>WebRTC 不用，历史遗留必填</td>
+</tr>
+<tr>
+<td><code>t=0 0</code></td>
+<td>会话有效期</td>
+<td>永久；WebRTC 的会话生命周期由信令层管理</td>
+</tr>
+<tr>
+<td><code>a=group:BUNDLE stream-0 stream-1</code></td>
+<td><strong>多路媒体复用同一条传输通道</strong></td>
+<td>没有 BUNDLE，每条 m= 行都要独占一组 ICE 候选 + 一次 DTLS 握手；两路视频会消耗双倍端口和握手时间。BUNDLE 让所有 track 走同一个 UDP 五元组</td>
+</tr>
+<tr>
+<td><code>a=msid-semantic: WMS ...</code></td>
+<td>声明本会话用 WMS（WebRTC MediaStream）语义</td>
+<td>浏览器据此把 <code>a=msid</code> 归组到 MediaStream——<strong>msid 重复会导致多路画面串流的根子在這里</strong>（见 10.8 故障 #6）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="1012-track">10.1.2 媒体级部分（每个 track 一段）<a class="headerlink" href="#1012-track" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>m=video 9 UDP/TLS/RTP/SAVPF 96
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>c=IN IP4 0.0.0.0
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>a=rtcp:9 IN IP4 0.0.0.0
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>a=mid:stream-0
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>a=sendonly
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>a=rtcp-mux
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>a=ice-ufrag:4ZcD
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>a=ice-pwd:2/1mNCikBrcjKhCvbKcW2SLO
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>a=ice-options:trickle
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>a=fingerprint:sha-256 8C:71:...:9A
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>a=setup:actpass
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>a=rtpmap:96 H264/90000
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>a=fmtp:96 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>a=rtcp-fb:96 nack
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>a=rtcp-fb:96 nack pli
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>a=rtcp-fb:96 goog-remb
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>a=ssrc:1465206224 cname:t41-main
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>a=msid:t41-s0 stream-0
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>行</th>
+<th>含义</th>
+<th>背景与陷阱</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>m=video 9 UDP/TLS/RTP/SAVPF 96</code></td>
+<td>媒体类型、端口、传输协议、<strong>PT 清单</strong></td>
+<td>端口 <code>9</code> 是占位符——真实地址由 ICE 候选决定；<code>SAVPF</code> = Secure AV Profile，即"RTP 包会经 DTLS-SRTP 加密"；末尾的数字列表是<strong>本会话所有可用的 payload type</strong></td>
+</tr>
+<tr>
+<td><code>c=IN IP4 0.0.0.0</code></td>
+<td>连接地址</td>
+<td>同样是占位，真实地址看候选</td>
+</tr>
+<tr>
+<td><code>a=mid:stream-0</code></td>
+<td>本段媒体流的名字</td>
+<td><strong>BUNDLE 的钥匙</strong>：RTP 包头里带 mid 扩展，接收端靠它把包路由到对应 track；<code>addIceCandidate</code> 也必须用正确的 mid（wtest.cpp 433-441 特意从 answer 里解析真实 mid）</td>
+</tr>
+<tr>
+<td><code>a=sendonly</code></td>
+<td>媒体方向（我只想发）</td>
+<td>见 10.2.3 方向协商矩阵；WebRTC 四种：<code>sendrecv/sendonly/recvonly/inactive</code></td>
+</tr>
+<tr>
+<td><code>a=rtcp-mux</code></td>
+<td>RTCP 与 RTP 复用同一端口</td>
+<td>省一半端口；RFC 5761</td>
+</tr>
+<tr>
+<td><code>a=ice-ufrag:</code> / <code>a=ice-pwd:</code></td>
+<td>ICE 的用户名片段与密码</td>
+<td><strong>ICE 层的凭据</strong>：连通性检查的 STUN Binding 报文用它们做 HMAC 认证（04 章 4.3.9）。注意：它防的是"伪造候选"，与媒体加密无关</td>
+</tr>
+<tr>
+<td><code>a=ice-options:trickle</code></td>
+<td>声明支持 trickle ICE</td>
+<td>候选边收集边发，不等齐全（04 章 4.3.7）</td>
+</tr>
+<tr>
+<td><code>a=fingerprint:sha-256 ...</code></td>
+<td><strong>本端 DTLS 证书的指纹</strong></td>
+<td>防中间人的关键：DTLS 握手时对方出示证书，哈希后与此行比对，不符即断（见 10.6.2）。这是 SDP 里唯一"承诺加密身份"的行</td>
+</tr>
+<tr>
+<td><code>a=setup:actpass</code></td>
+<td>DTLS 角色提议</td>
+<td>我两可（active=客户端，passive=服务端），由 answer 定（见 10.6.1；本项目就此踩过坑）</td>
+</tr>
+<tr>
+<td><code>a=rtpmap:96 H264/90000</code></td>
+<td>PT ↔ 编码映射</td>
+<td>PT 只是会话内编号（96~127 动态分配），<strong>双端各存一张映射表</strong>，RTP 包头里只有数字——这就是"PT 不一致 → 全丢"的原理（见 10.8 故障 #1）</td>
+</tr>
+<tr>
+<td><code>a=fmtp:96 packetization-mode=1;...</code></td>
+<td>编码格式参数</td>
+<td><code>packetization-mode=1</code> 允许 FU-A 分片——1080p 一帧几十 KB，一个 UDP 包装不下，必须分片；<strong>mode=0 只允许整 NALU 直装</strong>，选错变体大帧全丢（10.8 故障 #3）</td>
+</tr>
+<tr>
+<td><code>a=rtcp-fb:96 nack / nack pli / goog-remb</code></td>
+<td>声明支持的 RTCP 反馈</td>
+<td><code>nack</code>=丢包重传请求、<code>pli</code>=关键帧请求、<code>goog-remb</code>=带宽估计。<strong>offer/answer 必须双方都声明，接收端才敢用</strong>；设备端不声明 NACK，浏览器就不会发 NACK</td>
+</tr>
+<tr>
+<td><code>a=ssrc:1465206224 cname:t41-main</code></td>
+<td>RTP 流标识</td>
+<td>SSRC 是 RTP 包头里的 32 位流 ID；cname 用于 SDES/RTCP 关联。接收端校验：<strong>包里的 SSRC 必须和 SDP 声明对得上</strong></td>
+</tr>
+<tr>
+<td><code>a=msid:t41-s0 stream-0</code></td>
+<td>MediaStream/Track 归属</td>
+<td>浏览器据此创建 <code>MediaStream</code> 对象并触发 <code>ontrack</code> 的 <code>e.streams</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="1013-offer-answer">10.1.3 offer 与 answer 的差异点<a class="headerlink" href="#1013-offer-answer" title="Permanent link">&para;</a></h3>
+<p>同一套行，offer 和 answer 语义不同的只有三处：</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>offer（设备端发）</th>
+<th>answer（手机端回）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PT 清单</td>
+<td>列出<strong>全部</strong>支持的 codec</td>
+<td>只保留<strong>协商成功</strong>的（通常是 1 个）</td>
+</tr>
+<tr>
+<td>方向</td>
+<td>提议（如 sendonly）</td>
+<td>取交集后的确定值</td>
+</tr>
+<tr>
+<td><code>a=setup</code></td>
+<td><code>actpass</code>（或主动指定）</td>
+<td><code>active</code>/<code>passive</code> 二选一定死</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>本项目实证：设备端 offer 的 <code>m=video ... 96</code> 只带 H264 一个 codec（<code>addH264Codec(VID_PT)</code>，wtest.cpp 522）；浏览器 answer 里若挑中 H264，会回它<strong>自己重新编号的 PT</strong>——设备端必须以 answer 为准（10.2.4）。</p>
+</blockquote>
+<hr />
+<h2 id="102-offeranswer">10.2 offer/answer 协商算法：双方怎么"对齐"<a class="headerlink" href="#102-offeranswer" title="Permanent link">&para;</a></h2>
+<p>RFC 3264 规则（03 章 3.3.3 已有基础版）这里讲 <strong>JSEP/unified-plan 层的实现机制</strong>和"不满足会怎样"。</p>
+<h3 id="1021">10.2.1 三条铁律<a class="headerlink" href="#1021" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>answer 不能引入 offer 里没有的东西</strong>：codec、PT 值、fmtp 参数、rtcp-fb，都只能从 offer 清单里<strong>挑</strong>。设备端只发 H264 → 手机端哪怕更喜欢 VP8 也只能接受 H264（或拒答）。</li>
+<li><strong>answer 每条 m= 段必须有明确归宿</strong>：接受（保留）、拒绝（<code>m=video 0 ...</code>，端口 0）、或置零方向（<code>a=inactive</code>）。不允许"悬空"。</li>
+<li><strong>最终生效 = answer 里的内容</strong>。offer 只是提案，answer 是合同。</li>
+</ol>
+<h3 id="1022-unified-plan-transceiver">10.2.2 unified-plan 与 transceiver：手机端的协商账本<a class="headerlink" href="#1022-unified-plan-transceiver" title="Permanent link">&para;</a></h3>
+<p>libwebrtc 内部为每条 m= 行维护一个 <strong>RTCRtpTransceiver</strong>（收发器），它记录：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Transceiver {
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  mid: "stream-0"                  ← 关联到 SDP 的哪一段
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  direction: sendonly/recvonly/... ← 当前方向
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  sender:   { track, ... }         ← 发送侧（手机端用 replaceTrack 换轨的地方，07 章 P5）
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  receiver: { track }              ← 接收侧（ontrack 回调的来源）
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>}
+</code></pre></div>
+<p><code>addTrack()</code> = 找一个方向兼容的 transceiver 绑定 sender；<code>onTrack</code> = 对端媒体经 transceiver.receiver 吐出来。<strong>plan-b（旧语义，多 track 挤一个 m= 段）已废弃</strong>——两端实现不一致时（一端 plan-b 一端 unified-plan）会出现"第二条视频轨静默丢失"。本项目两端都是 unified-plan（flutter_webrtc 的 <code>sdpSemantics</code> 参数，<code>09</code> 章 9.10 详述过 addTrack 穿透链）。</p>
+<h3 id="1023-rfc-3264-61">10.2.3 方向协商矩阵（RFC 3264 §6.1）<a class="headerlink" href="#1023-rfc-3264-61" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>offer 提议</th>
+<th>answer 回应</th>
+<th><strong>实际生效</strong>（对双方）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sendrecv</td>
+<td>sendrecv</td>
+<td>双向</td>
+</tr>
+<tr>
+<td>sendrecv</td>
+<td>sendonly</td>
+<td>answer→offer 单向（offer 只收）</td>
+</tr>
+<tr>
+<td>sendrecv</td>
+<td>recvonly</td>
+<td>offer→answer 单向（offer 只发）</td>
+</tr>
+<tr>
+<td>sendrecv</td>
+<td>inactive</td>
+<td>停</td>
+</tr>
+<tr>
+<td><strong>sendonly</strong></td>
+<td>recvonly</td>
+<td>offer→answer 单向 ★本项目</td>
+</tr>
+<tr>
+<td>sendonly</td>
+<td>sendonly</td>
+<td>❌ 非法，answer 必须回 recvonly 或 inactive</td>
+</tr>
+<tr>
+<td>sendonly</td>
+<td>inactive</td>
+<td>停</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>本项目实证：设备端 <code>Direction::SendOnly</code>（wtest.cpp 521）→ 手机端 answer 必回 <code>a=recvonly</code>。如果手机端页面把 track 方向配错（比如相机端也回 sendonly），协商非法，媒体建立失败。</p>
+</blockquote>
+<h3 id="1024-pt">10.2.4 PT 的"重新编号"陷阱 ★本项目核心踩坑<a class="headerlink" href="#1024-pt" title="Permanent link">&para;</a></h3>
+<p><strong>背景</strong>：PT（payload type）0~95 是静态约定（如 0=PCMU），96~127 动态分配、<strong>只在单次会话内有效</strong>。两端各自生成 SDP 时，编号互不相通——offer 里的 <code>96</code> 和 answer 里的 <code>96</code> 不一定指同一个 codec。</p>
+<p><strong>规则</strong>：RTP 包头里的 PT 数字，必须按 <strong>answer</strong>（合同）解释。发送方发的每个包，PT 都要填 answer 里对应自己编码格式的那个号。</p>
+<p><strong>本项目实证</strong>（wtest.cpp 445-474）：设备端把包化器初始 PT 设为 96，但收到浏览器 answer 后<strong>重新解析 answer 全文</strong>，找出 H264 实际被分到的 PT（Safari 的 offer/answer 里有多个 H264 变体，还要挑 <code>packetization-mode=1</code> 的那个），再回写 <code>g_rtpcfg[i]-&gt;payloadType</code>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="cm">/* 关键：协商以 offer 为准，H264 的实际 payload type 要从 answer 里取。</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="cm">   Safari 的 offer 里有多个 H264 变体（mode=0 / mode=1），必须选</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="cm">   fmtp 带 packetization-mode=1 的那个，否则 FU-A 分片会被全部丢弃 */</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="kt">int</span><span class="w"> </span><span class="n">chosen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pt_mode1</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">pt_mode1</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">pt_any</span><span class="p">;</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">chosen</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">chosen</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">128</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">NTRACK</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">g_rtpcfg</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="w"> </span><span class="n">g_rtpcfg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">payloadType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">uint8_t</span><span class="p">)</span><span class="n">chosen</span><span class="p">;</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">}</span>
+</code></pre></div>
+<blockquote>
+<p>若跳过这一步：设备发的 RTP 包 PT=96，而 answer 里 96 实际是 VP8（或另一个 H264 变体）→ 浏览器查表分派给错误的解码器/直接丢弃 → <strong>ICE 正常、DTLS 正常、却永远黑屏</strong>。这是"网络全通但不解码"类故障的头号原因。</p>
+</blockquote>
+<hr />
+<h2 id="103-libdatachannel">10.3 设备端（libdatachannel）建链步骤分解<a class="headerlink" href="#103-libdatachannel" title="Permanent link">&para;</a></h2>
+<p>对照 <code>wtest.cpp handle_init()</code>（420-556 行），每一步背后库替你做了什么：</p>
+<table>
+<thead>
+<tr>
+<th>代码</th>
+<th>libdatachannel 内部行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rtc::Configuration cfg</code></td>
+<td>空配置 = 只有 host 候选。设备在局域网内直连浏览器，不需要 STUN/TURN（04 章 4.3 的 srflx/relay 在此场景用不上）</td>
+</tr>
+<tr>
+<td><code>new rtc::PeerConnection(cfg)</code></td>
+<td>生成 ICE agent；<strong>生成自签名 DTLS 证书</strong>（后续写进 <code>a=fingerprint</code>）</td>
+</tr>
+<tr>
+<td><code>Description::Video(mid, SendOnly)</code> + <code>addH264Codec(96)</code></td>
+<td>构造 SDP 的 m= 段：方向 sendonly、PT 96 绑 H264/90000</td>
+</tr>
+<tr>
+<td><code>video.addSSRC(ssrc, cname, msid, mid)</code></td>
+<td>写 <code>a=ssrc</code> / <code>a=msid</code> 行——<strong>每路 track 的 msid 必须不同</strong>，否则浏览器归并成一条流（10.8 故障 #6）</td>
+</tr>
+<tr>
+<td><code>pc-&gt;addTrack(video)</code></td>
+<td>注册发送轨；返回的 Track 上挂 media handler 链</td>
+</tr>
+<tr>
+<td><code>H264RtpPacketizer + RtcpSrReporter + RtcpNackResponder</code></td>
+<td>出向媒体处理链（见 10.7.2）：H264 帧 → RTP 打包 → 周期发 RTCP SR → 应答 NACK</td>
+</tr>
+<tr>
+<td><code>pc-&gt;setLocalDescription()</code></td>
+<td><strong>生成 offer</strong>：填 ice-ufrag/pwd、fingerprint、<code>a=setup:actpass</code>（默认）；触发 ICE 收集 → <code>onLocalCandidate</code> 逐个回调</td>
+</tr>
+<tr>
+<td><code>onLocalDescription</code> → HTTP 返回给浏览器</td>
+<td>设备端自己当 HTTP 信令服务器（:8080 <code>/offer</code>）</td>
+</tr>
+<tr>
+<td><code>pc-&gt;setRemoteDescription(answer)</code></td>
+<td>解析 answer：确定 PT 映射、方向、DTLS 角色；ICE 有了对端候选即可开始连通性检查</td>
+</tr>
+<tr>
+<td>answer 到达 → ICE connected → DTLS 握手 → track open</td>
+<td><code>track-&gt;isOpen()</code> 才允许 <code>send()</code>（send_to 里判空保护）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="1031-sdp-api">10.3.1 设备端独有的"SDP 后处理"（无浏览器 API 时的人工干预）<a class="headerlink" href="#1031-sdp-api" title="Permanent link">&para;</a></h3>
+<p>浏览器/Flutter 端这些事由引擎自动完成，设备端裸用 libdatachannel 则要<strong>手写两段 SDP 补丁</strong>（wtest.cpp 543-553）：</p>
+<ol>
+<li><strong>PT 回填</strong>：从 answer 解析真实 H264 PT 覆盖本地包化器（10.2.4）。</li>
+<li><strong>setup 角色改写</strong>：把 offer 里的 <code>actpass</code> 替换成 <code>active</code>（原因见 10.6.1 踩坑）。</li>
+</ol>
+<blockquote>
+<p>这两段代码就是"协商不一致"的活教材——它们各自对应一类真实故障。</p>
+</blockquote>
+<hr />
+<h2 id="104-flutter_webrtc-libwebrtc">10.4 手机端（flutter_webrtc / libwebrtc）建链步骤分解<a class="headerlink" href="#104-flutter_webrtc-libwebrtc" title="Permanent link">&para;</a></h2>
+<p>对照 <code>signaling.dart</code>，同样的事在手机端的样子（Dart API → 引擎行为）：</p>
+<table>
+<thead>
+<tr>
+<th>Dart 代码</th>
+<th>libwebrtc 内部行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createPeerConnection({..._iceServers, sdpSemantics})</code></td>
+<td>建 ICE agent + DTLS 上下文；iceServers 决定 srflx/relay 候选的来源（04 章 4.3）</td>
+</tr>
+<tr>
+<td><code>createDataChannel('fileTransfer')</code></td>
+<td>主叫先建 DC；SDP 里随之多一条 <code>m=application</code> 段（BUNDLE 一起复用传输）</td>
+</tr>
+<tr>
+<td><code>pc.addTrack(track, stream)</code>（相机端） / 仅声明 <code>OfferToReceive</code>（监控端）</td>
+<td>绑 transceiver.sender；监控端 offer 里是 <code>a=recvonly</code></td>
+</tr>
+<tr>
+<td><code>pc.onTrack = ...</code></td>
+<td>收端：answer 生效、媒体包到达后，引擎经 transceiver.receiver 吐出 track → UI 渲染（08 章）</td>
+</tr>
+<tr>
+<td><code>await pc.createOffer()</code></td>
+<td>引擎汇总所有 transceiver → 生成 SDP offer（含全部 codec 清单、按优先级排序——<strong>这就是 P4 里 VP8 排在 H264 前面的来源</strong>，07 章 P4）</td>
+</tr>
+<tr>
+<td><code>setLocalDescription(offer)</code> → <code>_send('offer')</code></td>
+<td>应用层把 SDP 经信令发出</td>
+</tr>
+<tr>
+<td>收 answer → <code>setRemoteDescription(answer)</code></td>
+<td>引擎按合同更新 transceiver/PT 表/DTLS 角色；<strong>缓冲的候选此时统一补加</strong>（04 章 4.3.7）</td>
+</tr>
+<tr>
+<td><code>onIceCandidate</code> → 1s 节流发送</td>
+<td>trickle 逐条发候选（04 章 4.3.8）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="1041-api">10.4.1 两端 API 对照表（同一件事的两种写法）<a class="headerlink" href="#1041-api" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>职责</th>
+<th>设备端 libdatachannel</th>
+<th>手机端 flutter_webrtc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>建 PC</td>
+<td><code>new rtc::PeerConnection(cfg)</code></td>
+<td><code>createPeerConnection(map)</code></td>
+</tr>
+<tr>
+<td>声明媒体</td>
+<td><code>Description::Video(mid, SendOnly)</code> + <code>addTrack</code></td>
+<td><code>addTrack(track)</code>（方向随 transceiver）/ offer 约束</td>
+</tr>
+<tr>
+<td>生成 offer</td>
+<td><code>setLocalDescription()</code> 后读 <code>onLocalDescription</code></td>
+<td><code>createOffer()</code> + <code>setLocalDescription()</code></td>
+</tr>
+<tr>
+<td>吃 answer</td>
+<td><code>setRemoteDescription(Description(sdp,"answer"))</code></td>
+<td><code>setRemoteDescription(RTCSessionDescription)</code></td>
+</tr>
+<tr>
+<td>候选回调</td>
+<td><code>onLocalCandidate</code></td>
+<td><code>onIceCandidate</code></td>
+</tr>
+<tr>
+<td>候选注入</td>
+<td><code>addRemoteCandidate(Candidate)</code></td>
+<td><code>addCandidate(RTCIceCandidate)</code></td>
+</tr>
+<tr>
+<td>打包发送</td>
+<td>手动组链：<code>H264RtpPacketizer→SrReporter→NackResponder</code>，<code>track-&gt;send(frame)</code></td>
+<td><strong>全自动</strong>：引擎内部打包/加密/自适应码率，<code>addTrack</code> 后不再操心</td>
+</tr>
+<tr>
+<td>观测</td>
+<td>自己打日志（<code>[pc] state=/ice=</code>）</td>
+<td><code>onIceConnectionState</code> / <code>getStats</code> / <code>chrome://webrtc-internals</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>结构性差异：libdatachannel 把媒体处理链<strong>交给应用组装</strong>（灵活但要自己踩 PT/msid/分片这些坑——本章一半的故障案例来自这里）；libwebrtc 全部封装（省心但黑盒，调优只能靠 SDP 改写钩子 <code>_fixSdp</code>，07 章 P4）。</p>
+</blockquote>
+<hr />
+<h2 id="105-ice-sdp-04">10.5 ICE 在 SDP 中的落点（衔接 04 章）<a class="headerlink" href="#105-ice-sdp-04" title="Permanent link">&para;</a></h2>
+<p>04 章 4.3 已详述候选的产生（host/srflx/relay）与探测（STUN Binding 报文格式）；这里只补<strong>协议层面与 SDP 的耦合点</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>耦合点</th>
+<th>内容</th>
+<th>对不上的后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>a=ice-ufrag/pwd</code></td>
+<td>双方各自的检查凭据，<strong>写在 SDP 里</strong>随 offer/answer 交换</td>
+<td>用错对端的 pwd → STUN Binding 的 MESSAGE-INTEGRITY 校验失败 → 所有候选对判死</td>
+</tr>
+<tr>
+<td><code>a=candidate:</code> 行</td>
+<td>非 trickle 模式候选直接写在 SDP 里；trickle 模式 SDP 只留空、候选走信令逐条发</td>
+<td>混用两种模式 + 乱序 → 候选丢失（两端都有缓冲保护，04 章 4.3.7）</td>
+</tr>
+<tr>
+<td><code>a=end-of-candidates</code></td>
+<td>声明候选收集完毕</td>
+<td>接收端等不到它可能延长建连</td>
+</tr>
+<tr>
+<td><code>a=mid</code></td>
+<td>每个 candidate 消息带 <code>sdpMid/sdpMLineIndex</code>，指明候选属于哪条媒体流</td>
+<td><strong>BUNDLE 下挂错 mid → 候选加到错误的传输通道</strong>（wtest 特意解析 answer 的真实 mid 回传浏览器，wtest.cpp 433-441）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="106-dtls">10.6 DTLS 握手：加密通道怎么建立<a class="headerlink" href="#106-dtls" title="Permanent link">&para;</a></h2>
+<h3 id="1061">10.6.1 背景：为什么媒体必须加密 + 为什么角色会出问题<a class="headerlink" href="#1061" title="Permanent link">&para;</a></h3>
+<p><strong>背景一（为什么加密）</strong>：WebRTC 强制媒体加密（SRTP），明文 RTP 一律不收。密钥不能明文传（信令服务器看得见），于是用 <strong>DTLS 握手现场协商</strong>——双方各自生成临时证书，握手交换，密钥从不经过网络明文。</p>
+<p><strong>背景二（角色协商，RFC 5763）</strong>：DTLS 有客户端/服务端之分（谁先发 ClientHello）。SDP 用 <code>a=setup</code> 协商：</p>
+<table>
+<thead>
+<tr>
+<th>offer 里</th>
+<th>answer 里</th>
+<th>谁是 DTLS 客户端（先握手）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>actpass</code>（默认）</td>
+<td><code>active</code></td>
+<td><strong>answerer</strong></td>
+</tr>
+<tr>
+<td><code>actpass</code></td>
+<td><code>passive</code></td>
+<td><strong>offerer</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>★本项目踩坑实证</strong>（wtest.cpp 543-553）：设备端 offer 默认 <code>actpass</code> → 浏览器答 <code>active</code> → <strong>设备被推到 DTLS server 角色</strong> → 设备的 mbedTLS 后端在 server 模式握手失败。修法：设备把 offer 里的 <code>actpass</code> 字符串替换为 <code>active</code>，浏览器只能答 <code>passive</code>，设备保持 client（此前已验证可用的角色）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="cm">/* 关键：offer 默认 a=setup:actpass → Chrome 会答 setup:active，</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="cm">   设备被推到 DTLS server 角色 → mbedTLS 后端握手失败。</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="cm">   改为 a=setup:active，Chrome 只能答 setup:passive，设备保持 DTLS client */</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="kt">size_t</span><span class="w"> </span><span class="n">sp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">g_answer</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="s">"a=setup:actpass"</span><span class="p">);</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sp</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">::</span><span class="n">npos</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="n">g_answer</span><span class="p">.</span><span class="n">replace</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span><span class="w"> </span><span class="n">strlen</span><span class="p">(</span><span class="s">"a=setup:actpass"</span><span class="p">),</span><span class="w"> </span><span class="s">"a=setup:active"</span><span class="p">);</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="p">}</span>
+</code></pre></div>
+<blockquote>
+<p>排查启示：<strong>ICE 状态 connected 但媒体不通</strong>，第一件事看 DTLS 角色——两端实现（mbedTLS/OpenSSL/BoringSSL）对 server/client 模式的支持完整度不同，角色不是随便定的。</p>
+</blockquote>
+<h3 id="1062">10.6.2 握手流程与指纹校验<a class="headerlink" href="#1062" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant C as DTLS 客户端(设备端)
+    participant S as DTLS 服务端(手机端)
+
+    C-&gt;&gt;S: ClientHello (+use_srtp 扩展: SRTP_AES128_CM_SHA1_80)
+    S-&gt;&gt;C: ServerHello + Certificate
+    Note over C: ★校验：sha256(证书) == 对方 SDP 里的 a=fingerprint？&lt;br/&gt;不符 → 断链（防中间人）
+    C-&gt;&gt;S: ClientKeyExchange + Certificate + Finished
+    S-&gt;&gt;C: Finished
+    Note over C,S: 握手完成 → 按 RFC 5764 从 DTLS 会话导出 SRTP 主密钥</code></pre>
+<p>三个要点：</p>
+<ol>
+<li><strong>use_srtp 扩展</strong>（RFC 5764）：ClientHello 里声明"我要用这个 DTLS 会话跑 SRTP"，并给出保护套件（如 <code>SRTP_AES128_CM_SHA1_80</code>）。两端套件集合无交集 → 握手失败。</li>
+<li><strong>指纹校验</strong>：证书哈希必须等于对方 SDP 的 <code>a=fingerprint</code>。SDP 经信令传（信令通道本身用 TLS 保护），证书经 DTLS 传——两条路对上了才排除中间人。<strong>信令被劫持但指纹校验仍在</strong>是这条设计的最后防线。</li>
+<li><strong>密钥导出</strong>：握手完成后，双方用 DTLS exporter 按 <code>client-write-key/server-write-key</code> 分工导出 SRTP 主密钥——客户端握手材料导出的密钥用于"客户端→服务端"方向，反之亦然。密钥全程不落信令。</li>
+</ol>
+<h3 id="1063-dtls-05">10.6.3 DTLS 失败的表现（对照 05 章状态机）<a class="headerlink" href="#1063-dtls-05" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>层面</th>
+<th>特征</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>iceConnectionState: connected</code> 但无媒体</td>
+<td>DTLS 挂了</td>
+<td>最迷惑：网络层一切正常</td>
+</tr>
+<tr>
+<td>指纹不匹配</td>
+<td>校验失败</td>
+<td>握手在 Certificate 后断</td>
+</tr>
+<tr>
+<td>角色/套件不兼容</td>
+<td>握手协议错</td>
+<td>ClientHello 无响应或直接 alert</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="107-srtp">10.7 SRTP：媒体包怎么加密与打包<a class="headerlink" href="#107-srtp" title="Permanent link">&para;</a></h2>
+<h3 id="1071-rtp-12">10.7.1 RTP 包头（12 字节，明文保留）<a class="headerlink" href="#1071-rtp-12" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a> 0                   1                   2                   3
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>|V=2|P|X|  CC   |M|     PT      |       sequence number         |
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>|                           timestamp                           |
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>|                             SSRC                              |
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>位数</th>
+<th>本项目对应</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PT</td>
+<td>7</td>
+<td><strong>answer 协商出的 H264 PT</strong>（10.2.4 回填的那个）</td>
+</tr>
+<tr>
+<td>sequence number</td>
+<td>16</td>
+<td>逐包 +1；NACK 重传靠它定位</td>
+</tr>
+<tr>
+<td>timestamp</td>
+<td>32</td>
+<td>90kHz 时钟；设备端 <code>ts = pack.timestamp * 90 / 1000</code>（毫秒→90k，wtest.cpp 602）</td>
+</tr>
+<tr>
+<td>SSRC</td>
+<td>32</td>
+<td>设备端写死 <code>0x57455350+i</code>（"WEST"+i），与 SDP 的 <code>a=ssrc</code> 一致</td>
+</tr>
+</tbody>
+</table>
+<p>SRTP 包 = <strong>RTP 头（明文）+ 加密的 payload + 8~12 字节认证 tag</strong>。密钥来自 10.6 的 DTLS 导出；认证失败或密钥不符 → 包被静默丢弃（不报错，就是"没画面"）。</p>
+<h3 id="1072-h264-rtprfc-6184">10.7.2 H.264 怎么装进 RTP（RFC 6184）★本项目核心<a class="headerlink" href="#1072-h264-rtprfc-6184" title="Permanent link">&para;</a></h3>
+<p>一帧 1080p H.264 可达几十 KB，而 UDP 包实际载荷一般 ≤1400 字节 → <strong>必须分片</strong>。RFC 6184 定义三种打包方式：</p>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>适用</th>
+<th>本项目关联</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Single NALU</td>
+<td>一个 NALU ≤ 一包（小帧/参数集）</td>
+<td>SPS/PPS 这类小单元</td>
+</tr>
+<tr>
+<td>STAP-A</td>
+<td>多个小 NALU 聚合一包</td>
+<td>帧头的小参数集合并</td>
+</tr>
+<tr>
+<td><strong>FU-A</strong></td>
+<td>大 NALU 切成多包，共享同一 timestamp/seq 连续</td>
+<td><strong>1080p 视频帧的主力路径</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>packetization-mode</code> 就是"允许用哪些方式"的开关</strong>：mode=0 只允许 Single NALU + STAP-A（<strong>没有 FU-A</strong>）；mode=1 才允许 FU-A。这就是 wtest 从 answer 的多个 H264 变体里<strong>必须挑 mode=1</strong> 的原因（10.2.4）——选了 mode=0 的变体，分片帧全被解码端拒绝。</p>
+<p><strong>为什么设备端要 <code>LongStartSequence</code> 分隔符</strong>：IMP 编码器输出的 Annex-B 码流用 <code>00 00 00 01</code> 起始码分隔 NALU；包化器要按它切分再重组（wtest.cpp 530-531）。浏览器端解码器期望的是"去起始码、按 RTP 载荷格式重组"——这条转换就在 <code>H264RtpPacketizer</code> 内部完成。</p>
+<h3 id="1073-media-handler">10.7.3 media handler 链：设备端的出向管线<a class="headerlink" href="#1073-media-handler" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>track-&gt;send(h264_frame)
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  → H264RtpPacketizer      切 NALU / FU-A 分片，填 PT/seq/timestamp/SSRC
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  → RtcpSrReporter         周期发 RTCP SR（NTP↔RTP 时钟配对，音画同步用，03 章 3.4.8）
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  → RtcpNackResponder      收到 NACK → 从缓存重发对应 seq 的包
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>  → (库内部) SRTP 加密 → UDP 发出
+</code></pre></div>
+<blockquote>
+<p>对比：手机端 libwebrtc 把这整条链（含码率自适应、FEC、jitter buffer）都内置了；设备端裸库只给了骨架，<strong>丢包恢复能力取决于你挂没挂 NACK responder</strong>。没挂 → 弱网丢包后等下一个 IDR 才能恢复（花屏直到关键帧）。</p>
+</blockquote>
+<hr />
+<h2 id="108">10.8 协商不一致故障大全（本项目实证优先）<a class="headerlink" href="#108" title="Permanent link">&para;</a></h2>
+<p>按建链顺序排列，★ = 本项目真实踩过。</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>故障</th>
+<th>协议层原因</th>
+<th>表面现象</th>
+<th>本项目实例 / 修法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>PT 不一致</strong> ★</td>
+<td>RTP 包头 PT 数字与 answer 映射表不符</td>
+<td>ICE/DTLS 全通，包静默丢弃 → 黑屏</td>
+<td>wtest 初始 PT=96，answer 可能重编号 → <strong>必须解析 answer 回填</strong>（10.2.4）</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>codec 不在 offer 里</strong></td>
+<td>answer 不能引入新 codec（10.2.1 铁律 1）</td>
+<td>协商直接失败或降级到不想要的编码</td>
+<td>设备端 offer 只带 H264 → 手机端被迫收 H264；反之手机端 offer 若 VP8 优先且对端只回 VP8 → 软编发热（07 章 P4 同源问题）</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>H264 变体选错</strong> ★</td>
+<td>同一 codec 多个 fmtp 变体（mode=0/1），PT 各自独立</td>
+<td>大帧全丢、小帧偶尔能出 → 花屏/黑屏交替</td>
+<td>Safari offer 双变体 → 挑 <code>packetization-mode=1</code>（wtest 445-474）</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>profile-level-id 过低</strong></td>
+<td>offer 只含低 level（如 42e01f=3.1，最高 720p@30）</td>
+<td>高分辨率协商失败或解码异常</td>
+<td>1080p 需要 level ≥3.1；<code>level-asymmetry-allowed=1</code> 可缓解，但两端参数集要兼容</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>DTLS 角色冲突</strong> ★</td>
+<td>actpass 让实现不完整的端当 server</td>
+<td>ICE connected 但媒体不通</td>
+<td>mbedTLS server 握手失败 → offer 改 <code>setup:active</code>（10.6.1）</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>msid 重复</strong> ★</td>
+<td>多条 track 声明同一 msid</td>
+<td>浏览器把多轨归并进一个 MediaStream，所有 <code>&lt;video&gt;</code> 渲染第一轨 → <strong>多路画面全一样</strong></td>
+<td>V10 修复：每 track 独立 <code>t41-s0/s1/s2</code> + 页面用单轨 <code>new MediaStream([e.track])</code></td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>mid 用错</strong> ★</td>
+<td>BUNDLE 下 candidate/RTP 按 mid 路由</td>
+<td>候选加错通道 / 媒体进错 track</td>
+<td>浏览器 <code>addIceCandidate</code> 必须用 <strong>answer 里的真实 mid</strong>（wtest 解析回传，433-441）</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>方向冲突</strong></td>
+<td>sendonly 配 sendonly 等非法组合（10.2.3）</td>
+<td>协商失败或单向断流</td>
+<td>设备 SendOnly ↔ 手机必须 recvonly</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>plan-b vs unified-plan</strong></td>
+<td>两侧语义不同，第二条视频轨静默丢失</td>
+<td>第一路正常、第二路永远不出</td>
+<td>两端统一 unified-plan（<code>09</code> 章 9.10）</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>指纹不匹配 / 套件无交集</strong></td>
+<td>DTLS 校验失败</td>
+<td>ice connected → 秒断，反复</td>
+<td>检查两端 TLS 后端支持的 SRTP 套件；证书生成时间（时钟偏差影响有效期）</td>
+</tr>
+<tr>
+<td>11</td>
+<td><strong>rtcp-fb 未声明</strong></td>
+<td>SDP 没写 <code>a=rtcp-fb</code>，接收端不敢发 NACK/PLI</td>
+<td>弱网花屏不恢复、黑屏后无法请求关键帧</td>
+<td>libdatachannel 默认声明 nack/pli；自己改 SDP 时别删</td>
+</tr>
+<tr>
+<td>12</td>
+<td><strong>时钟率不符</strong></td>
+<td>rtpmap 声明 90000 但包时间戳按别的频率填</td>
+<td>画面播放速度异常/音画不同步</td>
+<td>视频恒 90kHz：<code>ts = ms * 90</code>（wtest 602）</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>故障的共同形态</strong>：②③④ 层失败的表现高度相似（都是"连上了但没画面"）。排查顺序固定：先 <code>iceConnectionState</code>（网络层）→ DTLS 日志（加密层）→ <strong>answer 里的 PT/fmtp 与实际 RTP 包比对</strong>（协商层）→ msid/mid（归组层）。设备端 wtest 的 <code>[answer]</code> 日志专门打印这些行就是为了这步。</p>
+</blockquote>
+<hr />
+<h2 id="109">10.9 排查工具箱：怎么"看到"这些协议字节<a class="headerlink" href="#109" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>看什么</th>
+<th>用法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>设备端日志 <code>/data/wtest.log</code></td>
+<td><code>[answer]</code> 打印的 m=/rtpmap/fmtp/ssrc 行、<code>[pc] state/ice</code></td>
+<td>排查协商层第一入口</td>
+</tr>
+<tr>
+<td><code>/data/offer.sdp</code></td>
+<td>设备端最后一次完整 SDP</td>
+<td>与手机端收到的对比</td>
+</tr>
+<tr>
+<td>服务端 <code>On message</code> 日志</td>
+<td>offer/answer/candidate 全文</td>
+<td>信令层看到的就是两端收到的（无状态转发，04 章 4.5）</td>
+</tr>
+<tr>
+<td><code>chrome://webrtc-internals</code></td>
+<td>两端 SDP、getStats（PT/编解码/丢包/码率）、ICE 候选对</td>
+<td>浏览器侧一切协商结果的权威视图</td>
+</tr>
+<tr>
+<td><code>getRtpSenderCapabilities('video')</code></td>
+<td>手机端能力全集</td>
+<td>07 章 P4 的验证手段</td>
+</tr>
+<tr>
+<td>Wireshark（<code>stun || dtls || udp.port==19302</code>）</td>
+<td>STUN Binding / DTLS 握手原文；SRTP 只能看到加密包</td>
+<td>验证 04 章 4.3.4-4.3.5 的报文格式</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_1">待填充清单<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[x] 10.0 建链五阶段字节视角总览</li>
+<li>[x] 10.1 SDP 逐行精读（会话级/媒体级/offer-answer 差异）</li>
+<li>[x] 10.2 协商算法（三铁律/transceiver/方向矩阵/PT 重编号陷阱）</li>
+<li>[x] 10.3 设备端 libdatachannel 步骤分解 + SDP 后处理</li>
+<li>[x] 10.4 手机端 flutter_webrtc 分解 + 双端 API 对照</li>
+<li>[x] 10.5 ICE 与 SDP 的耦合点</li>
+<li>[x] 10.6 DTLS（背景/角色/setup 踩坑/指纹/密钥导出）</li>
+<li>[x] 10.7 SRTP（RTP 头/H264 打包/FU-A/media handler 链）</li>
+<li>[x] 10.8 协商不一致故障大全（12 类）</li>
+<li>[x] 10.9 排查工具箱</li>
+<li>[ ] 10.6.3 补一次真实 DTLS 失败的日志样例</li>
+<li>[ ] 10.7 补 Wireshark 抓包样例（STUN/DTLS 各一段）</li>
+</ul>
+<h2 id="_2">对应本项目（索引）<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<ul>
+<li>设备端建链全代码：<code>t41-workspace/t41_build/wtest.cpp</code> → <code>handle_init()</code>（420-556 行）</li>
+<li>answer 解析/PT 回填：同上 445-474 行；setup 角色改写：543-553 行</li>
+<li>媒体发送链：<code>send_to()</code>（560-572）+ <code>stream_thread()</code>（577 起）</li>
+<li>手机端信令与 PC：<code>rephone-security/lib/services/signaling.dart</code>（对照表见 10.4.1）</li>
+<li>协议规范：RFC 4566 (SDP)、RFC 3264 (offer/answer)、RFC 8829 (JSEP)、RFC 8445 (ICE)、RFC 5763/4145 (DTLS 角色)、RFC 5764 (DTLS-SRTP)、RFC 3711 (SRTP)、RFC 6184 (H.264 RTP)、RFC 8843 (BUNDLE)</li>
+<li>关联章节：04（信令与 ICE 细节）、03 §3.3/§3.4（SDP/RTP 基础）、07 P1/P4/P5（关联踩坑）、08（渲染端消费）</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 WebRTC 伴随手册
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.top", "navigation.tracking", "content.code.copy", "content.code.annotate", "toc.follow"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+      
+    
+  </body>
+</html>
